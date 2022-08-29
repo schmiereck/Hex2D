@@ -1,45 +1,20 @@
 package de.schmiereck.hex2d;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class Cell {
     public enum Dir {
         NP, AP, BP, CP, AN, BN, CN
     }
-    private int dirProbability[] = new int[Dir.values().length];
 
-    /**
-     * numerator
-     */
-    private long probability;
-    /**
-     * denominator
-     */
-    private long probabilityDenominator;
+    private List<PartStep> partStepList = new ArrayList<>();
 
-    public void setProb(final Cell.Dir dir, final int probability) {
-        this.dirProbability[dir.ordinal()] = probability;
+    public List<PartStep> getPartStepList() {
+        return this.partStepList;
     }
 
-    public int getProb(final Cell.Dir dir) {
-        return this.dirProbability[dir.ordinal()];
-    }
-
-    public long getProbability() {
-        return this.probability;
-    }
-
-    public void setProbability(final long probability) {
-        this.probability = probability;
-    }
-
-    public void addProbability(final long probability) {
-        this.probability += probability;
-    }
-
-    public long getProbabilityDenominator() {
-        return this.probabilityDenominator;
-    }
-
-    public void setProbabilityDenominator(final long probabilityDenominator) {
-        this.probabilityDenominator = probabilityDenominator;
+    public void addPartStep(final PartStep partStep) {
+        this.partStepList.add(partStep);
     }
 }

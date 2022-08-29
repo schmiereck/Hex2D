@@ -1,5 +1,7 @@
 package de.schmiereck.hex2d;
 
+import java.util.List;
+
 public class GridNode {
     private final int posX;
     private final int posY;
@@ -22,32 +24,11 @@ public class GridNode {
         return this.posY;
     }
 
-    public void setProb(final int cellArrPos, final Cell.Dir dir, final int probability) {
-        this.cellArr[cellArrPos].setProb(dir, probability);
+    public List<PartStep> getPartStepList(final int cellArrPos) {
+        return this.cellArr[cellArrPos].getPartStepList();
     }
 
-    public int getProb(final int cellArrPos, final Cell.Dir dir) {
-        return this.cellArr[cellArrPos].getProb(dir);
+    public void addPartStep(final int cellArrPos, final PartStep partStep) {
+        this.cellArr[cellArrPos].addPartStep(partStep);
     }
-
-    public void setProbability(final int cellArrPos, final long probability) {
-        this.cellArr[cellArrPos].setProbability(probability);
-    }
-
-    public void addProbability(final int cellArrPos, final long probability) {
-        this.cellArr[cellArrPos].addProbability(probability);
-    }
-
-    public long getProbability(final int cellArrPos) {
-        return this.cellArr[cellArrPos].getProbability();
-    }
-
-    public void setProbabilityDenominator(final int cellArrPos, final long probabilityDenominator) {
-        this.cellArr[cellArrPos].setProbabilityDenominator(probabilityDenominator);
-    }
-
-    public long getProbabilityDenominator(final int cellArrPos) {
-        return this.cellArr[cellArrPos].getProbabilityDenominator();
-    }
-
 }

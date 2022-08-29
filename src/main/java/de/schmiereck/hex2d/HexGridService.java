@@ -1,5 +1,7 @@
 package de.schmiereck.hex2d;
 
+import java.util.Objects;
+
 import org.springframework.stereotype.Component;
 
 /**
@@ -65,16 +67,16 @@ public class HexGridService {
 
         final GridNode gridNode = this.hexGrid.getGridNode(3, 5);
 
-        gridNode.setProbability(this.getActCellArrPos(), PROBABILITY);
-        gridNode.setProbabilityDenominator(this.getActCellArrPos(), 0);
+        final PartStep partStep = new PartStep(null, Cell.Dir.NP, PROBABILITY);
+        gridNode.addPartStep(this.getActCellArrPos(), partStep);
 
-        gridNode.setProb(this.getActCellArrPos(), Cell.Dir.AP, PROBABILITY_1_1);
+        //partStep.setProb(Cell.Dir.AP, PROBABILITY_1_1);
 
-        gridNode.setProb(this.getActCellArrPos(), Cell.Dir.AP, PROBABILITY_1_2);
-        gridNode.setProb(this.getActCellArrPos(), Cell.Dir.CP, PROBABILITY_1_2);
+        //partStep.setProb(Cell.Dir.AP, PROBABILITY_1_2);
+        //partStep.setProb(Cell.Dir.CP, PROBABILITY_1_2);
 
-        //gridNode.setProb(this.getActCellArrPos(), Cell.Dir.AP, PROBABILITY_2_3);
-        //gridNode.setProb(this.getActCellArrPos(), Cell.Dir.CP, PROBABILITY_1_3);
+        partStep.setProb(Cell.Dir.AP, PROBABILITY_2_3);
+        partStep.setProb(Cell.Dir.CP, PROBABILITY_1_3);
     }
 
     public void calcNext() {
@@ -95,22 +97,20 @@ public class HexGridService {
                     final GridNode sourceGridNode =
                             this.hexGrid.getGridNode(posX + offsetArr[0], posY + offsetArr[1]);
 
-                    final Cell.Dir otherDir = calcOtherDir(dir);
-                    final long otherProbability = sourceGridNode.getProbability(this.getActCellArrPos());
-                    final int otherDirProb = sourceGridNode.getProb(this.getActCellArrPos(), otherDir);
-                    final long targetProbability = (otherProbability * otherDirProb);
-                    if (targetProbability > 0) {
-                        final long probabilityDenominator = sourceGridNode.getProbabilityDenominator(this.getActCellArrPos());
+                    final Cell.Dir sourceDir = calcOtherDir(dir);
+                    sourceGridNode.getPartStepList(this.getActCellArrPos()).stream().forEach(sourcePartStep -> {
+                        final int sourceDirProb = sourcePartStep.getProb(sourceDir);
+                        if (sourceDirProb > 0) {
+                            final PartStep partStep = new PartStep(sourcePartStep, sourceDir, sourceDirProb);
 
-                        gridNode.addProbability(this.getNextCellArrPos(), targetProbability);
+                            for (final Cell.Dir copyDir : Cell.Dir.values()) {
+                                final int copyDirProb = sourcePartStep.getProb(copyDir);
+                                partStep.setProb(copyDir, copyDirProb);
+                            }
 
-                        gridNode.setProbabilityDenominator(this.getNextCellArrPos(), probabilityDenominator + 1);
-
-                        for (final Cell.Dir copyDir : Cell.Dir.values()) {
-                            final int copyDirProb = sourceGridNode.getProb(this.getActCellArrPos(), copyDir);
-                            gridNode.setProb(this.getNextCellArrPos(), copyDir, copyDirProb);
+                            gridNode.addPartStep(this.getNextCellArrPos(), partStep);
                         }
-                    }
+                    });
                 }
             }
         }
@@ -120,11 +120,7 @@ public class HexGridService {
         for (int posY = 0; posY < this.hexGrid.getNodeCountY(); posY++) {
             for (int posX = 0; posX < this.hexGrid.getNodeCountX(); posX++) {
                 final GridNode gridNode = this.hexGrid.getGridNode(posX, posY);
-                gridNode.setProbability(this.getNextCellArrPos(), 0);
-                gridNode.setProbabilityDenominator(this.getNextCellArrPos(), 0);
-                for (final Cell.Dir dir : Cell.Dir.values()) {
-                    gridNode.setProb(this.getNextCellArrPos(), dir, 0);
-                }
+                gridNode.getPartStepList(this.getNextCellArrPos()).clear();
             }
         }
     }
@@ -166,13 +162,20 @@ public class HexGridService {
 
     public double retrieveActGridNodeProbability(final int posX, final int posY) {
         final GridNode gridNode = this.hexGrid.getGridNode(posX, posY);
-        final long probability = gridNode.getProbability(this.getActCellArrPos());
-        final long probabilityDenominator = gridNode.getProbabilityDenominator(this.getActCellArrPos());
-        if (probability > 0 || probabilityDenominator > 0) {
-            final double denominator = Math.pow(PROBABILITY, probabilityDenominator);
-            return probability / denominator;
+        double probability = 0.0D;
+        for (final PartStep partStep : gridNode.getPartStepList(this.getActCellArrPos())) {
+            probability += calcProbability(partStep);
+        }
+        return probability * PROBABILITY;
+    }
+
+    private double calcProbability(final PartStep partStep) {
+        final double probability = partStep.getProbability();
+        final PartStep parentPartStep = partStep.getParentPartStep();
+        if (Objects.nonNull(parentPartStep)) {
+            return calcProbability(parentPartStep) * (probability / PROBABILITY);
         } else {
-            return 0.0D;
+            return probability / PROBABILITY;
         }
     }
 }
