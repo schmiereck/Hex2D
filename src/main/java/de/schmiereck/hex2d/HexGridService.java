@@ -66,7 +66,6 @@ public class HexGridService {
         final GridNode gridNode = this.hexGrid.getGridNode(3, 5);
 
         gridNode.setProbability(this.getActCellArrPos(), PROBABILITY);
-        gridNode.setProbabilityDenominator(this.getActCellArrPos(), 0);
 
         gridNode.setProb(this.getActCellArrPos(), Cell.Dir.AP, PROBABILITY_1_1);
 
@@ -96,15 +95,11 @@ public class HexGridService {
                             this.hexGrid.getGridNode(posX + offsetArr[0], posY + offsetArr[1]);
 
                     final Cell.Dir otherDir = calcOtherDir(dir);
-                    final long otherProbability = sourceGridNode.getProbability(this.getActCellArrPos());
-                    final int otherDirProb = sourceGridNode.getProb(this.getActCellArrPos(), otherDir);
-                    final long targetProbability = (otherProbability * otherDirProb);
+                    final long sourceProbability = sourceGridNode.getProbability(this.getActCellArrPos());
+                    final int sourceDirProb = sourceGridNode.getProb(this.getActCellArrPos(), otherDir);
+                    final long targetProbability = (sourceProbability * sourceDirProb) / PROBABILITY;
                     if (targetProbability > 0) {
-                        final long probabilityDenominator = sourceGridNode.getProbabilityDenominator(this.getActCellArrPos());
-
                         gridNode.addProbability(this.getNextCellArrPos(), targetProbability);
-
-                        gridNode.setProbabilityDenominator(this.getNextCellArrPos(), probabilityDenominator + 1);
 
                         for (final Cell.Dir copyDir : Cell.Dir.values()) {
                             final int copyDirProb = sourceGridNode.getProb(this.getActCellArrPos(), copyDir);
@@ -121,7 +116,6 @@ public class HexGridService {
             for (int posX = 0; posX < this.hexGrid.getNodeCountX(); posX++) {
                 final GridNode gridNode = this.hexGrid.getGridNode(posX, posY);
                 gridNode.setProbability(this.getNextCellArrPos(), 0);
-                gridNode.setProbabilityDenominator(this.getNextCellArrPos(), 0);
                 for (final Cell.Dir dir : Cell.Dir.values()) {
                     gridNode.setProb(this.getNextCellArrPos(), dir, 0);
                 }
@@ -167,10 +161,8 @@ public class HexGridService {
     public double retrieveActGridNodeProbability(final int posX, final int posY) {
         final GridNode gridNode = this.hexGrid.getGridNode(posX, posY);
         final long probability = gridNode.getProbability(this.getActCellArrPos());
-        final long probabilityDenominator = gridNode.getProbabilityDenominator(this.getActCellArrPos());
-        if (probability > 0 || probabilityDenominator > 0) {
-            final double denominator = Math.pow(PROBABILITY, probabilityDenominator);
-            return probability / denominator;
+        if (probability > 0) {
+            return probability;
         } else {
             return 0.0D;
         }

@@ -42,12 +42,4 @@ public class GridNode {
         return this.cellArr[cellArrPos].getProbability();
     }
 
-    public void setProbabilityDenominator(final int cellArrPos, final long probabilityDenominator) {
-        this.cellArr[cellArrPos].setProbabilityDenominator(probabilityDenominator);
-    }
-
-    public long getProbabilityDenominator(final int cellArrPos) {
-        return this.cellArr[cellArrPos].getProbabilityDenominator();
-    }
-
 }

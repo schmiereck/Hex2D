@@ -10,10 +10,6 @@ public class Cell {
      * numerator
      */
     private long probability;
-    /**
-     * denominator
-     */
-    private long probabilityDenominator;
 
     public void setProb(final Cell.Dir dir, final int probability) {
         this.dirProbability[dir.ordinal()] = probability;
@@ -35,11 +31,4 @@ public class Cell {
         this.probability += probability;
     }
 
-    public long getProbabilityDenominator() {
-        return this.probabilityDenominator;
-    }
-
-    public void setProbabilityDenominator(final long probabilityDenominator) {
-        this.probabilityDenominator = probabilityDenominator;
-    }
 }
