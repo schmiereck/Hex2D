@@ -213,11 +213,21 @@ public class HexGridService {
     private double calcProbability(final PartStep partStep) {
         final double probability = partStep.getProbability();
         final PartStep parentPartStep = partStep.getParentPartStep();
-        if (Objects.nonNull(parentPartStep)) {
-            return calcProbability(parentPartStep) * (probability / PROBABILITY);
+        final double retProbability;
+        if (partStep.getCalcuated()) {
+            retProbability = partStep.getCalcuatedProbability();
         } else {
-            return probability / PROBABILITY;
+            if (Objects.nonNull(parentPartStep)) {
+                retProbability = calcProbability(parentPartStep) * (probability / PROBABILITY);
+            } else {
+                retProbability = probability / PROBABILITY;
+            }
+            partStep.setCalcuatedProbability(retProbability);
+            partStep.setCalcuated(true);
+            //partStep.setParentPartStep(null);
         }
+
+        return retProbability;
     }
 
     public int retrieveStepCount() {
