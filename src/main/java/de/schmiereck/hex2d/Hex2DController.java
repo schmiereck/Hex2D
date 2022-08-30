@@ -59,7 +59,7 @@ public class Hex2DController implements Initializable
 
     @FXML
     protected void onNextButtonClick() {
-        this.counterText.setText("Step: ");
+        this.counterText.setText(String.format("Step: %d", this.hexGridService.retrieveStepCount()));
 
         this.hexGridService.calcNext();
 

@@ -1,6 +1,11 @@
 package de.schmiereck.hex2d;
 
+import static de.schmiereck.hex2d.utils.DirUtils.calcAxisByDirNumber;
+import static de.schmiereck.hex2d.utils.DirUtils.calcDirNumberByAxis;
+import static de.schmiereck.hex2d.utils.DirUtils.calcDirProb;
+
 import java.util.Objects;
+import java.util.stream.IntStream;
 
 import org.springframework.stereotype.Component;
 
@@ -32,14 +37,26 @@ import org.springframework.stereotype.Component;
 @Component
 public class HexGridService {
 
-    public static final int PROBABILITY = 1 * 2 * 3 * 5 * 7;
+    public static final int PROBABILITY = 1 * 2 * 3 * 4 * 5 * 7;
+    public static final int PROBABILITY_0 = 0;
     public static final int PROBABILITY_1_1 = PROBABILITY;
     public static final int PROBABILITY_1_2 = PROBABILITY / 2;
     public static final int PROBABILITY_1_3 = PROBABILITY / 3;
     public static final int PROBABILITY_2_3 = PROBABILITY_1_3 * 2;
+    public static final int PROBABILITY_1_4 = PROBABILITY / 4;
+    public static final int PROBABILITY_2_4 = PROBABILITY_1_4 * 2;
+    public static final int PROBABILITY_3_4 = PROBABILITY_1_4 * 3;
+    public static final int PROBABILITY_1_8 = PROBABILITY / 8;
+    public static final int PROBABILITY_2_8 = PROBABILITY_1_8 * 2;
+    public static final int PROBABILITY_3_8 = PROBABILITY_1_8 * 3;
+    public static final int PROBABILITY_1_10 = PROBABILITY / 10;
+    public static final int PROBABILITY_4_10 = PROBABILITY_1_10 * 4;
+    public static final int PROBABILITY_6_10 = PROBABILITY_1_10 * 6;
+    public static final int PROBABILITY_9_10 = PROBABILITY_1_10 * 9;
     private HexGrid hexGrid;
 
     private int cellArrPos = 0;
+    private int stepCount = 0;
 
     private static final int[][][] DirOffsetArr = {
             {
@@ -71,12 +88,29 @@ public class HexGridService {
         gridNode.addPartStep(this.getActCellArrPos(), partStep);
 
         //partStep.setProb(Cell.Dir.AP, PROBABILITY_1_1);
+        initDirProb(partStep, Cell.Dir.AP, 0.0D);
 
         //partStep.setProb(Cell.Dir.AP, PROBABILITY_1_2);
         //partStep.setProb(Cell.Dir.CP, PROBABILITY_1_2);
 
-        partStep.setProb(Cell.Dir.AP, PROBABILITY_2_3);
-        partStep.setProb(Cell.Dir.CP, PROBABILITY_1_3);
+        //partStep.setProb(Cell.Dir.AP, PROBABILITY_2_3);
+        //partStep.setProb(Cell.Dir.CP, PROBABILITY_1_3);
+
+        //partStep.setProb(Cell.Dir.AP, PROBABILITY_9_10);
+        //partStep.setProb(Cell.Dir.CP, PROBABILITY_1_10);
+
+        //partStep.setProb(Cell.Dir.CN, PROBABILITY_1_2);
+        //partStep.setProb(Cell.Dir.BP, PROBABILITY_1_2);
+    }
+
+    private void initDirProb(final PartStep partStep, final Cell.Dir startDir, final double dirOffset) {
+        final int startDirNumber = calcDirNumberByAxis(startDir);
+        IntStream.rangeClosed(-2, 2).forEach(dirNumberOffset -> {
+            final int dirNumber = startDirNumber + dirNumberOffset;
+            final Cell.Dir dir = calcAxisByDirNumber(dirNumber);
+            final int probalility = (int)Math.round(calcDirProb(dirOffset, dirNumberOffset));
+            partStep.setProb(dir, probalility);
+        });
     }
 
     public void calcNext() {
@@ -85,6 +119,8 @@ public class HexGridService {
         this.calcNextCellArrPos();
 
         this.clearNextGrid();
+
+        this.stepCount++;
     }
 
     private void calcGrid() {
@@ -177,5 +213,9 @@ public class HexGridService {
         } else {
             return probability / PROBABILITY;
         }
+    }
+
+    public int retrieveStepCount() {
+        return this.stepCount;
     }
 }
