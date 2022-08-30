@@ -78,7 +78,7 @@ public class DirUtils {
         if (dirNumber >= 0) {
             retDirNumber = dirNumber % DirArr.length;
         } else {
-            retDirNumber = (DirArr.length - dirNumber) % DirArr.length;
+            retDirNumber = ((DirArr.length) + dirNumber) % DirArr.length;
         }
         return DirArr[retDirNumber];
     }

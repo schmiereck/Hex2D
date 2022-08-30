@@ -1,8 +1,14 @@
 package de.schmiereck.hex2d.utils;
 
+import static de.schmiereck.hex2d.utils.DirUtils.calcAxisByDirNumber;
+import static de.schmiereck.hex2d.utils.DirUtils.calcDirNumberByAxis;
+import static de.schmiereck.hex2d.utils.DirUtils.calcDirProb;
 import static org.junit.jupiter.api.Assertions.*;
 
+import de.schmiereck.hex2d.Cell;
 import de.schmiereck.hex2d.HexGridService;
+
+import java.util.stream.IntStream;
 
 public class DirUtilsTest {
 
@@ -59,5 +65,27 @@ public class DirUtilsTest {
         assertEquals(HexGridService.PROBABILITY_6_10, DirUtils.calcDirProb(0.8D, 0), DELTA);
         assertEquals(HexGridService.PROBABILITY_9_10, DirUtils.calcDirProb(0.8D, 1), DELTA);
         assertEquals(HexGridService.PROBABILITY_4_10, DirUtils.calcDirProb(0.8D, 2), DELTA);
+    }
+
+    @org.junit.jupiter.api.Test
+    public void test() {
+        final int startDirNumber = calcDirNumberByAxis(Cell.Dir.AP);
+
+        assertEquals(HexGridService.PROBABILITY_0, (int)Math.round(DirUtils.calcDirProb(0.0D, -2)));
+        assertEquals(HexGridService.PROBABILITY_1_2, (int)Math.round(DirUtils.calcDirProb(0.0D, -1)));
+        assertEquals(HexGridService.PROBABILITY, (int)Math.round(DirUtils.calcDirProb(0.0D, 0)));
+        assertEquals(HexGridService.PROBABILITY_1_2, (int)Math.round(DirUtils.calcDirProb(0.0D, 1)));
+        assertEquals(HexGridService.PROBABILITY_0, (int)Math.round(DirUtils.calcDirProb(0.0D, 2)));
+    }
+
+    @org.junit.jupiter.api.Test
+    public void test2() {
+        final int startDirNumber = calcDirNumberByAxis(Cell.Dir.AP);
+
+        assertEquals(Cell.Dir.BN, calcAxisByDirNumber(startDirNumber + -2));
+        assertEquals(Cell.Dir.CP, calcAxisByDirNumber(startDirNumber + -1));
+        assertEquals(Cell.Dir.AP, calcAxisByDirNumber(startDirNumber + 0));
+        assertEquals(Cell.Dir.BP, calcAxisByDirNumber(startDirNumber + 1));
+        assertEquals(Cell.Dir.CN, calcAxisByDirNumber(startDirNumber + 2));
     }
 }

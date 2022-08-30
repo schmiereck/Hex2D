@@ -92,15 +92,20 @@ public class HexGridService {
 
         //partStep.setProb(Cell.Dir.AP, PROBABILITY_1_2);
         //partStep.setProb(Cell.Dir.CP, PROBABILITY_1_2);
+        //initDirProb(partStep, Cell.Dir.CP, 0.5D);
 
         //partStep.setProb(Cell.Dir.AP, PROBABILITY_2_3);
         //partStep.setProb(Cell.Dir.CP, PROBABILITY_1_3);
+        //initDirProb(partStep, Cell.Dir.AP, -0.25D);
+        //initDirProb(partStep, Cell.Dir.CP, 0.75D);
 
         //partStep.setProb(Cell.Dir.AP, PROBABILITY_9_10);
         //partStep.setProb(Cell.Dir.CP, PROBABILITY_1_10);
 
         //partStep.setProb(Cell.Dir.CN, PROBABILITY_1_2);
         //partStep.setProb(Cell.Dir.BP, PROBABILITY_1_2);
+        //initDirProb(partStep, Cell.Dir.BP, 0.5D);
+        //initDirProb(partStep, Cell.Dir.CN, -0.5D);
     }
 
     private void initDirProb(final PartStep partStep, final Cell.Dir startDir, final double dirOffset) {
@@ -108,7 +113,7 @@ public class HexGridService {
         IntStream.rangeClosed(-2, 2).forEach(dirNumberOffset -> {
             final int dirNumber = startDirNumber + dirNumberOffset;
             final Cell.Dir dir = calcAxisByDirNumber(dirNumber);
-            final int probalility = (int)Math.round(calcDirProb(dirOffset, dirNumberOffset));
+            final int probalility = (int)(Math.round(calcDirProb(dirOffset, dirNumberOffset)) / 2.0D);
             partStep.setProb(dir, probalility);
         });
     }
