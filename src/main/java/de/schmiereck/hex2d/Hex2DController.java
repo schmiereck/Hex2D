@@ -59,14 +59,14 @@ public class Hex2DController implements Initializable
 
     @FXML
     protected void onNextButtonClick() {
-        this.counterText.setText(String.format("Step: %d", this.hexGridService.retrieveStepCount()));
-
         this.hexGridService.calcNext();
 
         this.updateView();
     }
 
     private void updateView() {
+        this.counterText.setText(String.format("Step: %d (Part-Steps: %,d)", this.hexGridService.retrieveStepCount(), this.hexGridService.retrievePartStepCount()));
+
         for (int posY = 0; posY < this.gridModel.getNodeCountY(); posY++) {
             for (int posX = 0; posX < this.gridModel.getNodeCountX(); posX++) {
                 final GridCellModel gridCellModel = this.gridModel.getGridCellModel(posX, posY);

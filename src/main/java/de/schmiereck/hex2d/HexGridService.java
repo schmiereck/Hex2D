@@ -222,8 +222,8 @@ public class HexGridService {
             } else {
                 retProbability = probability / PROBABILITY;
             }
-            partStep.setCalcuatedProbability(retProbability);
-            partStep.setCalcuated(true);
+            //partStep.setCalcuatedProbability(retProbability);
+            //partStep.setCalcuated(true);
             //partStep.setParentPartStep(null);
         }
 
@@ -232,5 +232,20 @@ public class HexGridService {
 
     public int retrieveStepCount() {
         return this.stepCount;
+    }
+
+    /**
+     * 0    1   2   3   4   5   6   7       8       9       10      11      12      13
+     * 1    3   9   27  81  243 729 2.187   6.516   19.683  59.049  177.147 53.441  1.594.323
+     */
+    public long retrievePartStepCount() {
+        long partStepCount = 0;
+        for (int posY = 0; posY < this.hexGrid.getNodeCountY(); posY++) {
+            for (int posX = 0; posX < this.hexGrid.getNodeCountX(); posX++) {
+                final GridNode gridNode = this.hexGrid.getGridNode(posX, posY);
+                partStepCount += gridNode.getPartStepList(this.getActCellArrPos()).size();
+            }
+        }
+        return partStepCount;
     }
 }
