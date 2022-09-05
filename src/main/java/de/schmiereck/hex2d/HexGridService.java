@@ -5,6 +5,8 @@ import static de.schmiereck.hex2d.utils.DirUtils.calcDirNumberByAxis;
 import static de.schmiereck.hex2d.utils.DirUtils.calcDirProb;
 
 import java.util.Objects;
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.IntStream;
 
 import org.springframework.stereotype.Component;
@@ -37,7 +39,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class HexGridService {
 
-    public static final int PROBABILITY = 1 * 2 * 3 * 4 * 5 * 7;
+    public static final int PROBABILITY = 1 * 2 * 3 * 5 * 7;
     public static final int PROBABILITY_0 = 0;
     public static final int PROBABILITY_1_1 = PROBABILITY;
     public static final int PROBABILITY_1_2 = PROBABILITY / 2;
@@ -53,10 +55,6 @@ public class HexGridService {
     public static final int PROBABILITY_4_10 = PROBABILITY_1_10 * 4;
     public static final int PROBABILITY_6_10 = PROBABILITY_1_10 * 6;
     public static final int PROBABILITY_9_10 = PROBABILITY_1_10 * 9;
-    private HexGrid hexGrid;
-
-    private int cellArrPos = 0;
-    private int stepCount = 0;
 
     private static final int[][][] DirOffsetArr = {
             {
@@ -78,6 +76,22 @@ public class HexGridService {
                     {0, 1}     // CN
             }
     };
+
+    private static final Cell.Dir[] OppositeDirArr = new Cell.Dir[Cell.Dir.values().length];
+    static {
+        OppositeDirArr[Cell.Dir.NP.ordinal()] = Cell.Dir.NP;
+        OppositeDirArr[Cell.Dir.AN.ordinal()] = Cell.Dir.AP;
+        OppositeDirArr[Cell.Dir.BN.ordinal()] = Cell.Dir.BP;
+        OppositeDirArr[Cell.Dir.CN.ordinal()] = Cell.Dir.CP;
+        OppositeDirArr[Cell.Dir.AP.ordinal()] = Cell.Dir.AN;
+        OppositeDirArr[Cell.Dir.BP.ordinal()] = Cell.Dir.BN;
+        OppositeDirArr[Cell.Dir.CP.ordinal()] = Cell.Dir.CN;
+    }
+
+    private HexGrid hexGrid;
+
+    private int cellArrPos = 0;
+    private int stepCount = 0;
 
     public void initialize(final int sizeX, final int sizeY) {
         this.hexGrid = new HexGrid(sizeX, sizeY);
@@ -138,23 +152,89 @@ public class HexGridService {
                     final GridNode sourceGridNode =
                             this.hexGrid.getGridNode(posX + offsetArr[0], posY + offsetArr[1]);
 
-                    final Cell.Dir sourceDir = calcOtherDir(dir);
+                    final Cell.Dir sourceDir = calcOppositeDir(dir);
                     sourceGridNode.getPartStepList(this.getActCellArrPos()).stream().forEach(sourcePartStep -> {
                         final int sourceDirProb = sourcePartStep.getProb(sourceDir);
                         if (sourceDirProb > 0) {
-                            final PartStep partStep = new PartStep(sourcePartStep, sourceDir, sourceDirProb);
+                            final Optional<PartStep> optionalExistingPartStep = this.searchExistingPartStep(gridNode, sourcePartStep, sourceDir, sourceDirProb);
+                            if (optionalExistingPartStep.isPresent()) {
+                                optionalExistingPartStep.get().addProbability(sourceDirProb);
+                            } else
+                            {
+                                final PartStep partStep = new PartStep(sourcePartStep, sourceDir, sourceDirProb);
 
-                            for (final Cell.Dir copyDir : Cell.Dir.values()) {
-                                final int copyDirProb = sourcePartStep.getProb(copyDir);
-                                partStep.setProb(copyDir, copyDirProb);
+                                for (final Cell.Dir copyDir : Cell.Dir.values()) {
+                                    final int copyDirProb = sourcePartStep.getProb(copyDir);
+                                    partStep.setProb(copyDir, copyDirProb);
+                                }
+
+                                gridNode.addPartStep(this.getNextCellArrPos(), partStep);
                             }
-
-                            gridNode.addPartStep(this.getNextCellArrPos(), partStep);
                         }
                     });
                 }
             }
         }
+    }
+
+    private Optional<PartStep> searchExistingPartStep(final GridNode gridNode, final PartStep sourcePartStep, final Cell.Dir sourceDir, final int sourceDirProb) {
+        return gridNode.getPartStepList(this.getActCellArrPos()).stream().filter(partStep ->
+            this.checkExistingPartStepB(partStep, sourcePartStep, sourceDir, sourceDirProb)
+        ).findFirst();
+    }
+/*
+    private boolean checkExistingPartStepA(final PartStep partStep, final PartStep sourcePartStep, final Cell.Dir sourceDir, final int sourceDirProb) {
+        return this.calcProbabilitySum(partStep.getParentPartStep(), partStep.getProbability()) ==
+                this.calcProbabilitySum(sourcePartStep, sourceDirProb);
+        PartStep nextPartStep = partStep.getParentPartStep();
+        PartStep nextSourcePartStep = sourcePartStep;
+        while (Objects.nonNull(nextPartStep)) {
+             sumProb = Math.multiplyExact(sumProb, nextPartStep.getProbability());
+            nextPartStep = nextPartStep.getParentPartStep();
+        }
+    }
+*/
+    private boolean checkExistingPartStepB(final PartStep partStep, final PartStep sourcePartStep, final Cell.Dir sourceDir, final int sourceDirProb) {
+        final long[] sumProb = this.calcProbabilitySum(partStep.getParentPartStep(), partStep.getProbability());
+        final long[] sourceSumProb = this.calcProbabilitySum(sourcePartStep, sourceDirProb);
+        return (sumProb[0] == sourceSumProb[0]) &&
+                (sumProb[1] == sourceSumProb[1]) &&
+                (sumProb[2] == sourceSumProb[2]) &&
+                (sumProb[3] == sourceSumProb[3]) &&
+                (sumProb[4] == sourceSumProb[4]);
+    }
+
+    private long[] calcProbabilitySum(final PartStep parentPartStep, final long dirProb) {
+        long sumProb = dirProb;
+        long sumProbDivCount = 0L;
+        long sumProbDiv8Count = 0L;
+        long sumProbDiv5Count = 0L;
+        long sumProbDiv3Count = 0L;
+        PartStep nextPartStep = parentPartStep;
+        while (Objects.nonNull(nextPartStep)) {
+            // idee: alle x schritte eine zwischensumme berechnen und nur die vergleichen?
+            // Problem: Reihenfolge...
+            sumProb = Math.multiplyExact(sumProb, nextPartStep.getProbability());
+            while ((sumProb % PROBABILITY) == 0L) {
+                sumProb /= PROBABILITY;
+                sumProbDivCount++;
+            }
+            while ((sumProb % 8L) == 0L) {
+                sumProb /= 8L;
+                sumProbDiv8Count++;
+            }
+            while ((sumProb % 5L) == 0L) {
+                sumProb /= 5L;
+                sumProbDiv5Count++;
+            }
+            while ((sumProb % 3L) == 0L) {
+                sumProb /= 3L;
+                sumProbDiv3Count++;
+            }
+            nextPartStep = nextPartStep.getParentPartStep();
+        }
+        System.out.println(sumProb + ", " + sumProbDivCount + ", " + sumProbDiv8Count + ", " + sumProbDiv5Count + ", " + sumProbDiv3Count);
+        return new long[] { sumProb, sumProbDivCount, sumProbDiv8Count, sumProbDiv5Count, sumProbDiv3Count };
     }
 
     private void clearNextGrid() {
@@ -166,19 +246,8 @@ public class HexGridService {
         }
     }
 
-    private static final Cell.Dir[] OtherDirArr = {
-
-            Cell.Dir.NP,    // NP
-            Cell.Dir.AN,    // AP
-            Cell.Dir.BN,    // BP
-            Cell.Dir.CN,    // CP
-            Cell.Dir.AP,    // AN
-            Cell.Dir.BP,    // BN
-            Cell.Dir.CP     // CN
-    };
-
-    private Cell.Dir calcOtherDir(Cell.Dir dir) {
-        return OtherDirArr[dir.ordinal()];
+    private Cell.Dir calcOppositeDir(final Cell.Dir dir) {
+        return OppositeDirArr[dir.ordinal()];
     }
 
     public HexGrid getHexGrid() {
@@ -236,7 +305,7 @@ public class HexGridService {
 
     /**
      * 0    1   2   3   4   5   6   7       8       9       10      11      12      13
-     * 1    3   9   27  81  243 729 2.187   6.516   19.683  59.049  177.147 53.441  1.594.323
+     * 1    3   9   27  81  243 729 2.187   6.561   19.683  59.049  177.147 53.441  1.594.323
      */
     public long retrievePartStepCount() {
         long partStepCount = 0;
