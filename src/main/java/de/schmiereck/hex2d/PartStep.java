@@ -4,7 +4,8 @@ public class PartStep {
     private PartStep parentPartStep;
     private final Cell.Dir dir;
     private long probability;
-    private final int dirProbability[] = new int[Cell.Dir.values().length];
+    private final int[] dirProbability = new int[Cell.Dir.values().length];
+    private final long[] probCntArr = new long[HexGridService.PROBABILITY + 1];
 
     private boolean calcuated = false;
     private double calcuatedProbability;
@@ -47,6 +48,10 @@ public class PartStep {
 
     public double getCalcuatedProbability() {
         return this.calcuatedProbability;
+    }
+
+    public long[] getProbCntArr() {
+        return this.probCntArr;
     }
 
     public void setCalcuatedProbability(final double calcuatedProbability) {

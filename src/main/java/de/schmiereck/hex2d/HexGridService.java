@@ -101,6 +101,8 @@ public class HexGridService {
         final PartStep partStep = new PartStep(null, Cell.Dir.NP, PROBABILITY);
         gridNode.addPartStep(this.getActCellArrPos(), partStep);
 
+        partStep.getProbCntArr()[PROBABILITY]++;
+
         //partStep.setProb(Cell.Dir.AP, PROBABILITY_1_1);
         initDirProb(partStep, Cell.Dir.AP, 0.0D);
 
@@ -158,15 +160,22 @@ public class HexGridService {
                         if (sourceDirProb > 0) {
                             final Optional<PartStep> optionalExistingPartStep = this.searchExistingPartStep(gridNode, sourcePartStep, sourceDir, sourceDirProb);
                             if (optionalExistingPartStep.isPresent()) {
-                                optionalExistingPartStep.get().addProbability(sourceDirProb);
-                            } else
-                            {
+                                final PartStep existingPartStep = optionalExistingPartStep.get();
+                                existingPartStep.getProbCntArr()[sourceDirProb]++;
+                            } else {
                                 final PartStep partStep = new PartStep(sourcePartStep, sourceDir, sourceDirProb);
 
                                 for (final Cell.Dir copyDir : Cell.Dir.values()) {
                                     final int copyDirProb = sourcePartStep.getProb(copyDir);
                                     partStep.setProb(copyDir, copyDirProb);
                                 }
+
+                                long[] sourceProbCntArr = sourcePartStep.getProbCntArr();
+                                long[] probCntArr = partStep.getProbCntArr();
+                                for (int probPos = 0; probPos <= PROBABILITY; probPos++) {
+                                    probCntArr[probPos] = sourceProbCntArr[probPos];
+                                }
+                                probCntArr[sourceDirProb]++;
 
                                 gridNode.addPartStep(this.getNextCellArrPos(), partStep);
                             }
@@ -182,59 +191,22 @@ public class HexGridService {
             this.checkExistingPartStepB(partStep, sourcePartStep, sourceDir, sourceDirProb)
         ).findFirst();
     }
-/*
-    private boolean checkExistingPartStepA(final PartStep partStep, final PartStep sourcePartStep, final Cell.Dir sourceDir, final int sourceDirProb) {
-        return this.calcProbabilitySum(partStep.getParentPartStep(), partStep.getProbability()) ==
-                this.calcProbabilitySum(sourcePartStep, sourceDirProb);
-        PartStep nextPartStep = partStep.getParentPartStep();
-        PartStep nextSourcePartStep = sourcePartStep;
-        while (Objects.nonNull(nextPartStep)) {
-             sumProb = Math.multiplyExact(sumProb, nextPartStep.getProbability());
-            nextPartStep = nextPartStep.getParentPartStep();
-        }
-    }
-*/
-    private boolean checkExistingPartStepB(final PartStep partStep, final PartStep sourcePartStep, final Cell.Dir sourceDir, final int sourceDirProb) {
-        final long[] sumProb = this.calcProbabilitySum(partStep.getParentPartStep(), partStep.getProbability());
-        final long[] sourceSumProb = this.calcProbabilitySum(sourcePartStep, sourceDirProb);
-        return (sumProb[0] == sourceSumProb[0]) &&
-                (sumProb[1] == sourceSumProb[1]) &&
-                (sumProb[2] == sourceSumProb[2]) &&
-                (sumProb[3] == sourceSumProb[3]) &&
-                (sumProb[4] == sourceSumProb[4]);
-    }
 
-    private long[] calcProbabilitySum(final PartStep parentPartStep, final long dirProb) {
-        long sumProb = dirProb;
-        long sumProbDivCount = 0L;
-        long sumProbDiv8Count = 0L;
-        long sumProbDiv5Count = 0L;
-        long sumProbDiv3Count = 0L;
-        PartStep nextPartStep = parentPartStep;
-        while (Objects.nonNull(nextPartStep)) {
-            // idee: alle x schritte eine zwischensumme berechnen und nur die vergleichen?
-            // Problem: Reihenfolge...
-            sumProb = Math.multiplyExact(sumProb, nextPartStep.getProbability());
-            while ((sumProb % PROBABILITY) == 0L) {
-                sumProb /= PROBABILITY;
-                sumProbDivCount++;
+    private boolean checkExistingPartStepB(final PartStep partStep, final PartStep sourcePartStep, final Cell.Dir sourceDir, final int sourceDirProb) {
+        long[] sourceProbCntArr = sourcePartStep.getProbCntArr();
+        long[] probCntArr = partStep.getProbCntArr();
+        for (int probPos = 0; probPos <= PROBABILITY; probPos++) {
+            final long sourceProbCnt;
+            if (probPos == sourceDirProb) {
+                sourceProbCnt = sourceProbCntArr[probPos] + 1L;
+            } else {
+                sourceProbCnt = sourceProbCntArr[probPos];
             }
-            while ((sumProb % 8L) == 0L) {
-                sumProb /= 8L;
-                sumProbDiv8Count++;
+            if (probCntArr[probPos] != sourceProbCnt) {
+                return false;
             }
-            while ((sumProb % 5L) == 0L) {
-                sumProb /= 5L;
-                sumProbDiv5Count++;
-            }
-            while ((sumProb % 3L) == 0L) {
-                sumProb /= 3L;
-                sumProbDiv3Count++;
-            }
-            nextPartStep = nextPartStep.getParentPartStep();
         }
-        System.out.println(sumProb + ", " + sumProbDivCount + ", " + sumProbDiv8Count + ", " + sumProbDiv5Count + ", " + sumProbDiv3Count);
-        return new long[] { sumProb, sumProbDivCount, sumProbDiv8Count, sumProbDiv5Count, sumProbDiv3Count };
+        return true;
     }
 
     private void clearNextGrid() {
