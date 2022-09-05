@@ -7,9 +7,6 @@ public class PartStep {
     private final int[] dirProbability = new int[Cell.Dir.values().length];
     private final long[] probCntArr = new long[HexGridService.PROBABILITY + 1];
 
-    private boolean calcuated = false;
-    private double calcuatedProbability;
-
     public PartStep(final PartStep parentPartStep, final Cell.Dir dir, final long probability) {
         this.parentPartStep = parentPartStep;
         this.dir = dir;
@@ -36,26 +33,8 @@ public class PartStep {
         return this.dirProbability[dir.ordinal()];
     }
 
-    public boolean getCalcuated() {
-        return this.calcuated;
-    }
-
-    public void setCalcuated(final boolean calcuated) {
-        this.calcuated = calcuated;
-        if (this.calcuated)
-            this.parentPartStep = null;
-    }
-
-    public double getCalcuatedProbability() {
-        return this.calcuatedProbability;
-    }
-
     public long[] getProbCntArr() {
         return this.probCntArr;
-    }
-
-    public void setCalcuatedProbability(final double calcuatedProbability) {
-        this.calcuatedProbability = calcuatedProbability;
     }
 
     public void addProbability(final int probability) {

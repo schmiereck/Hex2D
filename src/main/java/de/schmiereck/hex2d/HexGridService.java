@@ -4,6 +4,7 @@ import static de.schmiereck.hex2d.utils.DirUtils.calcAxisByDirNumber;
 import static de.schmiereck.hex2d.utils.DirUtils.calcDirNumberByAxis;
 import static de.schmiereck.hex2d.utils.DirUtils.calcDirProb;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
@@ -161,7 +162,8 @@ public class HexGridService {
                             final Optional<PartStep> optionalExistingPartStep = this.searchExistingPartStep(gridNode, sourcePartStep, sourceDir, sourceDirProb);
                             if (optionalExistingPartStep.isPresent()) {
                                 final PartStep existingPartStep = optionalExistingPartStep.get();
-                                existingPartStep.getProbCntArr()[sourceDirProb]++;
+                                existingPartStep.getProbCntArr()[sourceDirProb]--;
+                                existingPartStep.getProbCntArr()[sourceDirProb + sourceDirProb]++;
                             } else {
                                 final PartStep partStep = new PartStep(sourcePartStep, sourceDir, sourceDirProb);
 
@@ -184,10 +186,23 @@ public class HexGridService {
                 }
             }
         }
+        // combine equal part steps
+        /*
+        for (int posY = 0; posY < this.hexGrid.getNodeCountY(); posY++) {
+            for (int posX = 0; posX < this.hexGrid.getNodeCountX(); posX++) {
+                final GridNode gridNode = this.hexGrid.getGridNode(posX, posY);
+                List<PartStep> partStepList = gridNode.getPartStepList(this.getNextCellArrPos());
+            }
+        }
+        */
+    }
+
+    private Optional<PartStep> searchExistingPartStepX(final GridNode gridNode, final PartStep sourcePartStep, final Cell.Dir sourceDir, final int sourceDirProb) {
+        return Optional.empty();
     }
 
     private Optional<PartStep> searchExistingPartStep(final GridNode gridNode, final PartStep sourcePartStep, final Cell.Dir sourceDir, final int sourceDirProb) {
-        return gridNode.getPartStepList(this.getActCellArrPos()).stream().filter(partStep ->
+        return gridNode.getPartStepList(this.getNextCellArrPos()).stream().filter(partStep ->
             this.checkExistingPartStepB(partStep, sourcePartStep, sourceDir, sourceDirProb)
         ).findFirst();
     }
@@ -242,30 +257,33 @@ public class HexGridService {
         this.cellArrPos = this.getNextCellArrPos();
     }
 
+    /**
+     * @return the Probability between <code>0.0D</code> and {@link HexGridService#PROBABILITY}.
+     */
     public double retrieveActGridNodeProbability(final int posX, final int posY) {
         final GridNode gridNode = this.hexGrid.getGridNode(posX, posY);
         double probability = 0.0D;
         for (final PartStep partStep : gridNode.getPartStepList(this.getActCellArrPos())) {
             probability += calcProbability(partStep);
         }
-        return probability * PROBABILITY;
+        //if (probability > 0.0D)
+        //    System.out.print(probability + ", ");
+        return probability;
     }
 
+    /**
+     * @return the Probability between <code>0.0D</code> and {@link HexGridService#PROBABILITY}.
+     */
     private double calcProbability(final PartStep partStep) {
-        final double probability = partStep.getProbability();
-        final PartStep parentPartStep = partStep.getParentPartStep();
-        final double retProbability;
-        if (partStep.getCalcuated()) {
-            retProbability = partStep.getCalcuatedProbability();
-        } else {
-            if (Objects.nonNull(parentPartStep)) {
-                retProbability = calcProbability(parentPartStep) * (probability / PROBABILITY);
-            } else {
-                retProbability = probability / PROBABILITY;
+        double retProbability = PROBABILITY;
+
+        long[] probCntArr = partStep.getProbCntArr();
+        for (int probPos = 0; probPos <= PROBABILITY; probPos++) {
+            if (probCntArr[probPos] > 0L) {
+                for (int pos = 0; pos < probCntArr[probPos]; pos++) {
+                    retProbability = retProbability * ((double) probPos / (double) PROBABILITY);
+                }
             }
-            //partStep.setCalcuatedProbability(retProbability);
-            //partStep.setCalcuated(true);
-            //partStep.setParentPartStep(null);
         }
 
         return retProbability;
