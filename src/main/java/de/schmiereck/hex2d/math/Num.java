@@ -1,7 +1,5 @@
 package de.schmiereck.hex2d.math;
 
-import de.schmiereck.hex2d.HexGridService;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -13,12 +11,20 @@ public class Num {
             this.numArr = new long[numSize];
         }
 
-        public void setNum(final int num) {
-            this.numArr[num]++;
+        public void incNumCnt(final int numPos) {
+            this.numArr[numPos]++;
         }
 
-        public long getNum(int num) {
-            return this.numArr[num];
+        public void decNumCnt(final int numPos) {
+            this.numArr[numPos]--;
+        }
+
+        public void setNumCnt(final int numPos, final long cnt) {
+            this.numArr[numPos] = cnt;
+        }
+
+        public long getNumCnt(int numPos) {
+            return this.numArr[numPos];
         }
     }
 

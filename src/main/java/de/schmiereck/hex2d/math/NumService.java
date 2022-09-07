@@ -18,19 +18,46 @@ public class NumService {
         return new Num(this.denominator);
     }
 
+    public Num createNum(final Num num) {
+        final Num newNum = this.createNum();
+        final Num.NumSerie numSerie = this.getFirstNumSerie(num);
+        final Num.NumSerie newNumSerie = this.getFirstNumSerie(newNum);
+
+        for (int pos = 0; pos <= this.denominator * 2; pos++) {
+            newNumSerie.setNumCnt(pos, numSerie.getNumCnt(pos));
+        }
+        return newNum;
+    }
+
     // numerator
     public void divNum(final Num num, final int numerator) {
         final Num.NumSerie numSerie = this.getFirstNumSerie(num);
-        numSerie.setNum(numerator);
+        numSerie.incNumCnt(numerator);
+    }
+
+    public void addDivNum(final Num num, int numPos) {
+        final Num.NumSerie numSerie = this.getFirstNumSerie(num);
+        numSerie.decNumCnt(numPos);
+        numSerie.incNumCnt(numPos + numPos);
+    }
+
+    public long getNumCnt(final Num num, int numPos) {
+        final Num.NumSerie numSerie = this.getFirstNumSerie(num);
+        return numSerie.getNumCnt(numPos);
+    }
+
+    public void incDivNum(final Num num, int numPos) {
+        final Num.NumSerie numSerie = this.getFirstNumSerie(num);
+        numSerie.incNumCnt(numPos);
     }
 
     public double calcNumber(final Num num) {
         double retNumber = this.denominator;
         final Num.NumSerie numSerie = this.getFirstNumSerie(num);
 
-        for (int numPos = 0; numPos < this.denominator * 2 + 1; numPos++) {
-            if (numSerie.getNum(numPos) > 0L) {
-                for (int pos = 0; pos < numSerie.getNum(numPos); pos++) {
+        for (int numPos = 0; numPos <= this.denominator * 2; numPos++) {
+            if (numSerie.getNumCnt(numPos) > 0L) {
+                for (int pos = 0; pos < numSerie.getNumCnt(numPos); pos++) {
                     retNumber = retNumber * ((double) numPos / (double) this.denominator);
                 }
             }

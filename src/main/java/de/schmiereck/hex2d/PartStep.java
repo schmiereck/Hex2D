@@ -1,16 +1,19 @@
 package de.schmiereck.hex2d;
 
+import de.schmiereck.hex2d.math.Num;
+
 public class PartStep {
     private PartStep parentPartStep;
     private final Cell.Dir dir;
     private long probability;
     private final int[] dirProbability = new int[Cell.Dir.values().length];
-    private final long[] probCntArr = new long[HexGridService.PROBABILITY + 1];
+    private final Num probNum;
 
-    public PartStep(final PartStep parentPartStep, final Cell.Dir dir, final long probability) {
+    public PartStep(final PartStep parentPartStep, final Cell.Dir dir, final long probability, final Num probNum) {
         this.parentPartStep = parentPartStep;
         this.dir = dir;
         this.probability = probability;
+        this.probNum = probNum;
     }
 
     public PartStep getParentPartStep() {
@@ -33,11 +36,11 @@ public class PartStep {
         return this.dirProbability[dir.ordinal()];
     }
 
-    public long[] getProbCntArr() {
-        return this.probCntArr;
-    }
-
     public void addProbability(final int probability) {
         this.probability += probability;
+    }
+
+    public Num getProbNum() {
+        return this.probNum;
     }
 }
