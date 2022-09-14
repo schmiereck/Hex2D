@@ -73,7 +73,8 @@ public class NumService {
 
         // denominators equal?
         if (aFraction[1] == bFraction[1]) {
-            final long numerator = aFraction[0] + bFraction[0];
+            //final long numerator = aFraction[0] + bFraction[0];
+            final long numerator = Math.addExact(aFraction[0], bFraction[0]);
             // numerators <= max denominator * 2?
             if (numerator <= (this.denominator * 2)) {
                 final long denominatorCnt = aFraction[1];
@@ -126,7 +127,8 @@ public class NumService {
      */
     private void calcIncreaseDenominatorCnt(long[] fraction, long targetDenominatorCnt) {
         while (fraction[1] < targetDenominatorCnt) {
-            fraction[0] *= this.denominator;
+            //fraction[0] *= this.denominator;
+            fraction[0] = Math.multiplyExact(fraction[0], this.denominator);
             fraction[1]++;
         }
     }
@@ -159,7 +161,8 @@ public class NumService {
         for (int numPos = 0; numPos <= this.denominator * 2; numPos++) {
             final long aNumCnt = numSerie.getNumCnt(numPos);
             for (int cnt = 0; cnt < aNumCnt; cnt++) {
-                fraction[0] *= numPos;
+                //fraction[0] *= numPos;
+                fraction[0] = Math.multiplyExact(fraction[0], numPos);
                 fraction[1]++;
             }
         }

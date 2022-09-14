@@ -168,18 +168,20 @@ public class HexGridService {
                             if (optionalExistingPartStep.isPresent()) {
                                 final PartStep existingPartStep = optionalExistingPartStep.get();
                                 this.numService.addDivNum(existingPartStep.getProbNum(), sourceDirProb);
-                           } else {
-                                final PartStep partStep = new PartStep(sourcePartStep, sourceDir, sourceDirProb,
+                            } else {
+                                final PartStep newPartStep = new PartStep(sourcePartStep, sourceDir, sourceDirProb,
                                         this.numService.createNum(sourcePartStep.getProbNum()));
 
                                 for (final Cell.Dir copyDir : Cell.Dir.values()) {
                                     final int copyDirProb = sourcePartStep.getProb(copyDir);
-                                    partStep.setProb(copyDir, copyDirProb);
+                                    newPartStep.setProb(copyDir, copyDirProb);
                                 }
 
-                                this.numService.divNum(partStep.getProbNum(), sourceDirProb);
+                                this.numService.divNum(newPartStep.getProbNum(), sourceDirProb);
 
-                                gridNode.addPartStep(this.getNextCellArrPos(), partStep);
+                                //if (this.numService.addNum(sourcePartStep.getProbNum(), newPartStep.getProbNum()) == false) {
+                                    gridNode.addPartStep(this.getNextCellArrPos(), newPartStep);
+                                //}
                             }
                         }
                     });
@@ -290,7 +292,7 @@ public class HexGridService {
     /** fiona
      *  0   1   2   3   4   5   6   7       8       9       10      11      12      13
      *  1   3   9   27  81  243 729 2.187   6.561   19.683  59.049  177.147 53.441  1.594.323
-     *  1   3   6   17  27      105 186     316     511     808     1.254   1.884   2.741
+     *  1   3   6   17  27  54  105 186     316     511     808     1.254   1.884   2.741
      */
     public long retrievePartStepCount() {
         long partStepCount = 0;
