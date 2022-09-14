@@ -14,7 +14,7 @@ import org.junit.jupiter.api.Test;
  * 4	2	1   	1   	1,5  	3
  * </pre></code>
  */
-class NumServiceTest {
+class Test_NumService_WHEN_calcNumber_is_called {
 
     @Test
     void calcNumber() {
@@ -51,9 +51,9 @@ class NumServiceTest {
 
         Num num = numService.createNum();
 
-        numService.divNum(num, 1);
-        numService.divNum(num, 1);
-        numService.divNum(num, 1);
+        numService.divNum(num, 1);  // 1.0D
+        numService.divNum(num, 1);  // 0.5D
+        numService.divNum(num, 1);  // 0.25D
 
         final double number = numService.calcNumber(num);
 
@@ -67,8 +67,8 @@ class NumServiceTest {
 
         Num num = numService.createNum();
 
-        numService.divNum(num, 1);
-        numService.divNum(num, 1);
+        numService.divNum(num, 1);  // 1.0D
+        numService.divNum(num, 1);  // 0.5D
 
         final double number = numService.calcNumber(num);
 
@@ -82,9 +82,9 @@ class NumServiceTest {
 
         Num num = numService.createNum();
 
-        numService.divNum(num, 1);
-        numService.divNum(num, 1);
-        numService.divNum(num, 3);
+        numService.divNum(num, 1);  // 1.0D
+        numService.divNum(num, 1);  // 0.5D
+        numService.divNum(num, 3);  // 0.75D
 
         final double number = numService.calcNumber(num);
 
@@ -129,8 +129,8 @@ class NumServiceTest {
 
         Num num = numService.createNum();
 
-        numService.divNum(num, 1);
-        numService.divNum(num, 3);
+        numService.divNum(num, 1);  // 1.0D
+        numService.divNum(num, 3);  // 1.5D
 
         final double number = numService.calcNumber(num);
 
@@ -166,7 +166,7 @@ class NumServiceTest {
 
         Num num = numService.createNum();
 
-        numService.divNum(num, 2);
+        numService.divNum(num, 2);  // 2.0D
 
         final double number = numService.calcNumber(num);
 
