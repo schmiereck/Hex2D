@@ -8,9 +8,7 @@ import de.schmiereck.hex2d.math.Num;
 import de.schmiereck.hex2d.math.NumService;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.IntStream;
 
 import org.springframework.stereotype.Component;
@@ -169,19 +167,21 @@ public class HexGridService {
                                 final PartStep existingPartStep = optionalExistingPartStep.get();
                                 this.numService.addDivNum(existingPartStep.getProbNum(), sourceDirProb);
                             } else {
-                                final PartStep newPartStep = new PartStep(sourcePartStep, sourceDir, sourceDirProb,
-                                        this.numService.createNum(sourcePartStep.getProbNum()));
+                                if (this.numService.calcNumeratorCnt(sourcePartStep.getProbNum()) < 32) {
+                                    final PartStep newPartStep = new PartStep(sourcePartStep, sourceDir, sourceDirProb,
+                                            this.numService.createNum(sourcePartStep.getProbNum()));
 
-                                for (final Cell.Dir copyDir : Cell.Dir.values()) {
-                                    final int copyDirProb = sourcePartStep.getProb(copyDir);
-                                    newPartStep.setProb(copyDir, copyDirProb);
-                                }
+                                    for (final Cell.Dir copyDir : Cell.Dir.values()) {
+                                        final int copyDirProb = sourcePartStep.getProb(copyDir);
+                                        newPartStep.setProb(copyDir, copyDirProb);
+                                    }
 
-                                this.numService.divNum(newPartStep.getProbNum(), sourceDirProb);
+                                    this.numService.divNum(newPartStep.getProbNum(), sourceDirProb);
 
-                                //if (this.numService.addNum(sourcePartStep.getProbNum(), newPartStep.getProbNum()) == false) {
+                                    //if (this.numService.addNum(sourcePartStep.getProbNum(), newPartStep.getProbNum()) == false) {
                                     gridNode.addPartStep(this.getNextCellArrPos(), newPartStep);
-                                //}
+                                    //}
+                                }
                             }
                         }
                     });
@@ -189,14 +189,35 @@ public class HexGridService {
             }
         }
         // combine equal part steps
-        /*
         for (int posY = 0; posY < this.hexGrid.getNodeCountY(); posY++) {
             for (int posX = 0; posX < this.hexGrid.getNodeCountX(); posX++) {
                 final GridNode gridNode = this.hexGrid.getGridNode(posX, posY);
-                List<PartStep> partStepList = gridNode.getPartStepList(this.getNextCellArrPos());
+                final List<PartStep> partStepList = gridNode.getPartStepList(this.getNextCellArrPos());
+
+                for (int aPartStepPos = 0; aPartStepPos < partStepList.size(); aPartStepPos++) {
+                    final PartStep aPartStep = partStepList.get(aPartStepPos);
+                    final Num aProbNum = aPartStep.getProbNum();
+
+                    boolean foundOne = false;
+
+                    for (int bPartStepPos = aPartStepPos + 1; bPartStepPos < partStepList.size(); bPartStepPos++) {
+                        final PartStep bPartStep = partStepList.get(bPartStepPos);
+                        final Num bProbNum = bPartStep.getProbNum();
+                        final int diffNumPos = this.numService.findSingleDiffNumPos(aProbNum, bProbNum);
+
+                        if (diffNumPos != -1) {
+                            this.numService.addDivNum(aProbNum, bProbNum, diffNumPos);
+                            partStepList.remove(bPartStepPos);
+                            foundOne = true;
+                            break;
+                        }
+                    }
+                    if (foundOne) {
+                        break;
+                    }
+                }
             }
         }
-        */
     }
 
     private Optional<PartStep> searchExistingPartStepX(final GridNode gridNode, final PartStep sourcePartStep, final Cell.Dir sourceDir, final int sourceDirProb) {
@@ -204,9 +225,18 @@ public class HexGridService {
     }
 
     private Optional<PartStep> searchExistingPartStep(final GridNode gridNode, final PartStep sourcePartStep, final Cell.Dir sourceDir, final int sourceDirProb) {
-        return gridNode.getPartStepList(this.getNextCellArrPos()).stream().filter(partStep ->
-            this.checkExistingPartStepB(partStep, sourcePartStep, sourceDir, sourceDirProb)
+        return gridNode.getPartStepList(this.getNextCellArrPos()).stream().filter(partStep -> {
+                if (this.isCompatible(sourcePartStep, partStep))
+                    return this.checkExistingPartStepB(partStep, sourcePartStep, sourceDir, sourceDirProb);
+                else
+                    return false;
+            }
         ).findFirst();
+    }
+
+    private boolean isCompatible(final PartStep sourcePartStep, final PartStep partStep) {
+        // at the moment are all partSteps compatible (same dir pobability)
+        return true;
     }
 
     private boolean checkExistingPartStepB(final PartStep partStep, final PartStep sourcePartStep, final Cell.Dir sourceDir, final int sourceDirProb) {

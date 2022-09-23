@@ -41,6 +41,12 @@ public class NumService {
         numSerie.incNumCnt(numPos + numPos);
     }
 
+    public void addDivNum(final Num aNum, final Num bNum, int numPos) {
+        final Num.NumSerie aNumSerie = this.getFirstNumSerie(aNum);
+        final Num.NumSerie bNumSerie = this.getFirstNumSerie(bNum);
+        aNumSerie.setNumCnt(numPos, aNumSerie.getNumCnt(numPos) + bNumSerie.getNumCnt(numPos));
+    }
+
     public long getNumCnt(final Num num, int numPos) {
         final Num.NumSerie numSerie = this.getFirstNumSerie(num);
         return numSerie.getNumCnt(numPos);
@@ -184,7 +190,7 @@ public class NumService {
         return retNumber;
     }
 
-    private Num.NumSerie getFirstNumSerie(Num num) {
+    private Num.NumSerie getFirstNumSerie(final Num num) {
         final Num.NumSerie numSerie;
         if (num.getNumSerieListSize() == 0) {
             numSerie = new Num.NumSerie(this.denominator * 2 + 1);
@@ -193,5 +199,41 @@ public class NumService {
             numSerie = num.getNumSerie(0);
         }
         return numSerie;
+    }
+
+    public long calcNumeratorCnt(final Num num) {
+        long reNumeratorCnt = 0;
+        final Num.NumSerie numSerie = this.getFirstNumSerie(num);
+
+        for (int numPos = 0; numPos <= this.denominator * 2; numPos++) {
+            final long numCnt = numSerie.getNumCnt(numPos);
+            if (numCnt > 0L) {
+                reNumeratorCnt += numCnt;
+            }
+        }
+        return reNumeratorCnt;
+    }
+
+    public int findSingleDiffNumPos(final Num aNum, final Num bNum) {
+        int retDifNumPos = -1;
+        final Num.NumSerie aNumSerie = this.getFirstNumSerie(aNum);
+        final Num.NumSerie bNumSerie = this.getFirstNumSerie(bNum);
+
+        for (int numPos = 0; numPos <= this.denominator * 2; numPos++) {
+            final long aNumCnt = aNumSerie.getNumCnt(numPos);
+            final long bNumCnt = bNumSerie.getNumCnt(numPos);
+
+            if (aNumCnt != bNumCnt) {
+                if (retDifNumPos == -1) {
+                    // Found first diff
+                    retDifNumPos = numPos;
+                } else {
+                    // Found second diff.
+                    retDifNumPos = -1;
+                    break;
+                }
+            }
+        }
+        return retDifNumPos;
     }
 }

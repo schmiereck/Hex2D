@@ -149,9 +149,9 @@ public class Test_NumService_WHEN_addNum_is_called {
 
         final boolean added = numService.addNum(aNum, bNum);
 
-        // 1   3   4
-        // - + - = - = 1,00
-        // 4   4   4
+        // 1   1   1   1   3    1   6   7
+        // - * - * - + - * - =  - + - = - = 0,875
+        // 2   2   2   2   2    8   8   8
         final double number = numService.calcNumber(aNum);
 
         assertFalse(added);
