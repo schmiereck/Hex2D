@@ -202,14 +202,16 @@ public class HexGridService {
 
                     for (int bPartStepPos = aPartStepPos + 1; bPartStepPos < partStepList.size(); bPartStepPos++) {
                         final PartStep bPartStep = partStepList.get(bPartStepPos);
-                        final Num bProbNum = bPartStep.getProbNum();
-                        final int diffNumPos = this.numService.findSingleDiffNumPos(aProbNum, bProbNum);
+                        if (this.isCompatible(aPartStep, bPartStep)) {
+                            final Num bProbNum = bPartStep.getProbNum();
+                            final int diffNumPos = this.numService.findSingleDiffNumPos(aProbNum, bProbNum);
 
-                        if (diffNumPos != -1) {
-                            this.numService.addDivNum(aProbNum, bProbNum, diffNumPos);
-                            partStepList.remove(bPartStepPos);
-                            foundOne = true;
-                            break;
+                            if (diffNumPos != -1) {
+                                this.numService.addDivNum(aProbNum, bProbNum, diffNumPos);
+                                partStepList.remove(bPartStepPos);
+                                foundOne = true;
+                                break;
+                            }
                         }
                     }
                     if (foundOne) {

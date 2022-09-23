@@ -10,6 +10,7 @@ import javafx.stage.Stage;
 
 import java.io.IOException;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationListener;
@@ -24,8 +25,11 @@ public class StageInitializer implements ApplicationListener<StageReadyEvent> {
     private String applicationTitle;
     private ApplicationContext applicationContext;
 
-    public StageInitializer(@Value("${spring.application.ui.title}") String applicationTitle,
-                            ApplicationContext applicationContext) {
+    @Autowired
+    private HexGridService hexGridService;
+
+    public StageInitializer(@Value("${spring.application.ui.title}") final String applicationTitle,
+                            final ApplicationContext applicationContext) {
         this.applicationTitle = applicationTitle;
         this.applicationContext = applicationContext;
     }
@@ -38,10 +42,16 @@ public class StageInitializer implements ApplicationListener<StageReadyEvent> {
             FXMLLoader fxmlLoader = new FXMLLoader(this.chartResource.getURL());
             fxmlLoader.setControllerFactory(aClass -> this.applicationContext.getBean(aClass));
 
-            final Parent parent =fxmlLoader.load();
+            final Parent parent = fxmlLoader.load();
 
-            final Scene scene = new Scene(parent, 320, 240);
-            stage.setTitle(applicationTitle);
+            final HexGrid hexGrid = this.hexGridService.getHexGrid();
+
+            final double width = 640; //hexGrid.getNodeCountX() * GridModel.StepX;
+            final double height = 460; //(hexGrid.getNodeCountY()) * GridModel.StepY;
+
+            final Scene scene = new Scene(parent, width, height);
+
+            stage.setTitle(this.applicationTitle);
             stage.setScene(scene);
 
             //final BorderPane borderPane = (BorderPane) scene.lookup("#mainBoderPane");
@@ -63,7 +73,7 @@ public class StageInitializer implements ApplicationListener<StageReadyEvent> {
             //scene.setRoot(borderPane);
 
             stage.show();
-        } catch (IOException e) {
+        } catch (final IOException e) {
             throw new RuntimeException(e);
         }
     }

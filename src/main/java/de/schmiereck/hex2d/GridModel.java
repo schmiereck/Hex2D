@@ -25,9 +25,9 @@ public class GridModel {
         this.gridCellArr[posX][posY].setShape(shape);
     }
 
-    private static final double StepX = 16.0D;
-    private static final double StepHalfX = StepX / 2.0D;
-    private static final double StepY = Math.sqrt(Math.pow(StepX, 2.0D) - Math.pow(StepHalfX, 2.0D));
+    public static final double StepX = 16.0D;
+    public static final double StepHalfX = StepX / 2.0D;
+    public static final double StepY = Math.sqrt(Math.pow(StepX, 2.0D) - Math.pow(StepHalfX, 2.0D));
 
     private static double calcScreenPosX(final int posX, final int posY) {
         return (posX * StepX) + ((posY % 2) * StepHalfX);

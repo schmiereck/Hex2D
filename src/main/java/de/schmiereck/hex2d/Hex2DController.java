@@ -3,6 +3,7 @@ package de.schmiereck.hex2d;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Label;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
@@ -20,6 +21,9 @@ public class Hex2DController implements Initializable
     private Label counterText;
 
     @FXML
+    private BorderPane mainBoderPane;
+
+    @FXML
     private Pane mainPane;
 
     @Autowired
@@ -32,10 +36,11 @@ public class Hex2DController implements Initializable
     }
 
     @Override
-    public void initialize(URL url, ResourceBundle resourceBundle) {
+    public void initialize(final URL url, final ResourceBundle resourceBundle) {
         this.mainPane.setStyle("-fx-background-color: black;");
 
-        this.hexGridService.initialize(2, 1);
+        //this.hexGridService.initialize(2, 1);
+        this.hexGridService.initialize(4, 2);
 
         final HexGrid hexGrid = this.hexGridService.getHexGrid();
 
