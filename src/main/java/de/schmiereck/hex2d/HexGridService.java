@@ -36,6 +36,22 @@ import org.springframework.stereotype.Component;
  *        / \
  *  A    cn  bp    A
  *
+ * 100 -> 20, 50, 30 =>
+ *
+ *                     0,8
+ *                4 -> 2
+ *                     1,2
+ *         20 -> 10
+ *                6
+ *
+ *               10
+ *  100 -> 50 -> 25
+ *               15
+ *
+ *                6
+ *         30 -> 15
+ *                9
+ *
  * </code></pre>
  */
 @Component
@@ -102,7 +118,7 @@ public class HexGridService {
 
         final GridNode gridNode = this.hexGrid.getGridNode(3, 5);
 
-        final PartStep partStep = new PartStep(null, Cell.Dir.NP, PROBABILITY);
+        final PartStep partStep = new PartStep(null, PROBABILITY);
         gridNode.addPartStep(this.getActCellArrPos(), partStep);
 
         //partStep.setProb(Cell.Dir.AP, PROBABILITY_1_1);
@@ -162,13 +178,15 @@ public class HexGridService {
                         if (sourceDirProb > 0) {
                             final long newProbability = (sourcePartStep.getProbability() * sourceDirProb) / PROBABILITY;
 
-                            final Optional<PartStep> optionalExistingPartStep = this.searchExistingPartStep(gridNode, sourcePartStep, sourceDir, sourceDirProb);
+                            sourcePartStep.addSubProbability(newProbability);
+
+                            final Optional<PartStep> optionalExistingPartStep = this.searchExistingPartStep(gridNode, sourcePartStep);
 
                             if (optionalExistingPartStep.isPresent()) {
                                 final PartStep existingPartStep = optionalExistingPartStep.get();
                                 existingPartStep.addProbability(newProbability);
                             } else {
-                                final PartStep newPartStep = new PartStep(sourcePartStep, sourceDir, newProbability);
+                                final PartStep newPartStep = new PartStep(sourcePartStep, newProbability);
 
                                 for (final Cell.Dir copyDir : Cell.Dir.values()) {
                                     final int copyDirProb = sourcePartStep.getProb(copyDir);
@@ -182,9 +200,39 @@ public class HexGridService {
                 }
             }
         }
+        for (int posY = 0; posY < this.hexGrid.getNodeCountY(); posY++) {
+            for (int posX = 0; posX < this.hexGrid.getNodeCountX(); posX++) {
+                final GridNode gridNode = this.hexGrid.getGridNode(posX, posY);
+
+                gridNode.getPartStepList(this.getActCellArrPos()).stream().forEach(sourcePartStep -> {
+
+                    final long probability = sourcePartStep.getProbability();
+                    final long subProbability = sourcePartStep.getSubProbability();
+                    final long difProbability = probability - subProbability;
+
+                    if (difProbability > 0L) {
+                        final Optional<PartStep> optionalExistingPartStep = this.searchExistingPartStep(gridNode, sourcePartStep);
+
+                        if (optionalExistingPartStep.isPresent()) {
+                            final PartStep existingPartStep = optionalExistingPartStep.get();
+                            existingPartStep.addProbability(difProbability);
+                        } else {
+                            final PartStep newPartStep = new PartStep(sourcePartStep, difProbability);
+
+                            for (final Cell.Dir copyDir : Cell.Dir.values()) {
+                                final int copyDirProb = sourcePartStep.getProb(copyDir);
+                                newPartStep.setProb(copyDir, copyDirProb);
+                            }
+
+                            gridNode.addPartStep(this.getNextCellArrPos(), newPartStep);
+                        }
+                    }
+                });
+            }
+        }
     }
 
-    private Optional<PartStep> searchExistingPartStep(final GridNode gridNode, final PartStep sourcePartStep, final Cell.Dir sourceDir, final int sourceDirProb) {
+    private Optional<PartStep> searchExistingPartStep(final GridNode gridNode, final PartStep sourcePartStep) {
         return gridNode.getPartStepList(this.getNextCellArrPos()).stream().filter(partStep -> {
                 if (this.isCompatible(sourcePartStep, partStep))
                     return true;
