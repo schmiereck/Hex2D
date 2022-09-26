@@ -102,10 +102,8 @@ public class HexGridService {
 
         final GridNode gridNode = this.hexGrid.getGridNode(3, 5);
 
-        final PartStep partStep = new PartStep(null, Cell.Dir.NP, PROBABILITY, this.numService.createNum());
+        final PartStep partStep = new PartStep(null, Cell.Dir.NP, PROBABILITY);
         gridNode.addPartStep(this.getActCellArrPos(), partStep);
-
-        this.numService.incDivNum(partStep.getProbNum(), PROBABILITY);
 
         //partStep.setProb(Cell.Dir.AP, PROBABILITY_1_1);
         initDirProb(partStep, Cell.Dir.AP, 0.0D);
@@ -162,74 +160,34 @@ public class HexGridService {
                     sourceGridNode.getPartStepList(this.getActCellArrPos()).stream().forEach(sourcePartStep -> {
                         final int sourceDirProb = sourcePartStep.getProb(sourceDir);
                         if (sourceDirProb > 0) {
+                            final long newProbability = (sourcePartStep.getProbability() * sourceDirProb) / PROBABILITY;
+
                             final Optional<PartStep> optionalExistingPartStep = this.searchExistingPartStep(gridNode, sourcePartStep, sourceDir, sourceDirProb);
+
                             if (optionalExistingPartStep.isPresent()) {
                                 final PartStep existingPartStep = optionalExistingPartStep.get();
-                                this.numService.addDivNum(existingPartStep.getProbNum(), sourceDirProb);
+                                existingPartStep.addProbability(newProbability);
                             } else {
-                                if (this.numService.calcNumeratorCnt(sourcePartStep.getProbNum()) < 32) {
-                                    final PartStep newPartStep = new PartStep(sourcePartStep, sourceDir, sourceDirProb,
-                                            this.numService.createNum(sourcePartStep.getProbNum()));
+                                final PartStep newPartStep = new PartStep(sourcePartStep, sourceDir, newProbability);
 
-                                    for (final Cell.Dir copyDir : Cell.Dir.values()) {
-                                        final int copyDirProb = sourcePartStep.getProb(copyDir);
-                                        newPartStep.setProb(copyDir, copyDirProb);
-                                    }
-
-                                    this.numService.divNum(newPartStep.getProbNum(), sourceDirProb);
-
-                                    //if (this.numService.addNum(sourcePartStep.getProbNum(), newPartStep.getProbNum()) == false) {
-                                    gridNode.addPartStep(this.getNextCellArrPos(), newPartStep);
-                                    //}
+                                for (final Cell.Dir copyDir : Cell.Dir.values()) {
+                                    final int copyDirProb = sourcePartStep.getProb(copyDir);
+                                    newPartStep.setProb(copyDir, copyDirProb);
                                 }
+
+                                gridNode.addPartStep(this.getNextCellArrPos(), newPartStep);
                             }
                         }
                     });
                 }
             }
         }
-        // combine equal part steps
-        for (int posY = 0; posY < this.hexGrid.getNodeCountY(); posY++) {
-            for (int posX = 0; posX < this.hexGrid.getNodeCountX(); posX++) {
-                final GridNode gridNode = this.hexGrid.getGridNode(posX, posY);
-                final List<PartStep> partStepList = gridNode.getPartStepList(this.getNextCellArrPos());
-
-                for (int aPartStepPos = 0; aPartStepPos < partStepList.size(); aPartStepPos++) {
-                    final PartStep aPartStep = partStepList.get(aPartStepPos);
-                    final Num aProbNum = aPartStep.getProbNum();
-
-                    boolean foundOne = false;
-
-                    for (int bPartStepPos = aPartStepPos + 1; bPartStepPos < partStepList.size(); bPartStepPos++) {
-                        final PartStep bPartStep = partStepList.get(bPartStepPos);
-                        if (this.isCompatible(aPartStep, bPartStep)) {
-                            final Num bProbNum = bPartStep.getProbNum();
-                            final int diffNumPos = this.numService.findSingleDiffNumPos(aProbNum, bProbNum);
-
-                            if (diffNumPos != -1) {
-                                this.numService.addDivNum(aProbNum, bProbNum, diffNumPos);
-                                partStepList.remove(bPartStepPos);
-                                foundOne = true;
-                                break;
-                            }
-                        }
-                    }
-                    if (foundOne) {
-                        break;
-                    }
-                }
-            }
-        }
-    }
-
-    private Optional<PartStep> searchExistingPartStepX(final GridNode gridNode, final PartStep sourcePartStep, final Cell.Dir sourceDir, final int sourceDirProb) {
-        return Optional.empty();
     }
 
     private Optional<PartStep> searchExistingPartStep(final GridNode gridNode, final PartStep sourcePartStep, final Cell.Dir sourceDir, final int sourceDirProb) {
         return gridNode.getPartStepList(this.getNextCellArrPos()).stream().filter(partStep -> {
                 if (this.isCompatible(sourcePartStep, partStep))
-                    return this.checkExistingPartStepB(partStep, sourcePartStep, sourceDir, sourceDirProb);
+                    return true;
                 else
                     return false;
             }
@@ -237,29 +195,7 @@ public class HexGridService {
     }
 
     private boolean isCompatible(final PartStep sourcePartStep, final PartStep partStep) {
-        // at the moment are all partSteps compatible (same dir pobability)
-        return true;
-    }
-
-    private boolean checkExistingPartStepB(final PartStep partStep, final PartStep sourcePartStep, final Cell.Dir sourceDir, final int sourceDirProb) {
-        return this.checkExistingPartStepB(partStep, sourcePartStep, sourceDirProb);
-    }
-
-    private boolean checkExistingPartStepB(final PartStep partStep, final PartStep sourcePartStep, final int sourceDirProb) {
-        final Num sourceProbNum = sourcePartStep.getProbNum();
-        final Num probNum = partStep.getProbNum();
-
-        for (int probPos = 0; probPos <= PROBABILITY * 2; probPos++) {
-            final long sourceProbCnt;
-            if (probPos == sourceDirProb) {
-                sourceProbCnt = this.numService.getNumCnt(sourceProbNum, probPos) + 1L;
-            } else {
-                sourceProbCnt = this.numService.getNumCnt(sourceProbNum, probPos);
-            }
-            if (this.numService.getNumCnt(probNum, probPos) != sourceProbCnt) {
-                return false;
-            }
-        }
+        // at the moment are all partSteps compatible (same dir probability)
         return true;
     }
 
@@ -314,7 +250,7 @@ public class HexGridService {
      * @return the Probability between <code>0.0D</code> and {@link HexGridService#PROBABILITY}.
      */
     private double calcProbability(final PartStep partStep) {
-        return this.numService.calcNumber(partStep.getProbNum());
+        return partStep.getProbability();
     }
 
     public int retrieveStepCount() {

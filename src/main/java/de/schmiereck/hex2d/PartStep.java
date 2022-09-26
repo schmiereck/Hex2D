@@ -7,13 +7,11 @@ public class PartStep {
     private final Cell.Dir dir;
     private long probability;
     private final int[] dirProbability = new int[Cell.Dir.values().length];
-    private final Num probNum;
 
-    public PartStep(final PartStep parentPartStep, final Cell.Dir dir, final long probability, final Num probNum) {
+    public PartStep(final PartStep parentPartStep, final Cell.Dir dir, final long probability) {
         this.parentPartStep = parentPartStep;
         this.dir = dir;
         this.probability = probability;
-        this.probNum = probNum;
     }
 
     public PartStep getParentPartStep() {
@@ -36,11 +34,7 @@ public class PartStep {
         return this.dirProbability[dir.ordinal()];
     }
 
-    public void addProbability(final int probability) {
+    public void addProbability(final long probability) {
         this.probability += probability;
-    }
-
-    public Num getProbNum() {
-        return this.probNum;
     }
 }
