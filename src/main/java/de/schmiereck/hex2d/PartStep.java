@@ -3,7 +3,8 @@ package de.schmiereck.hex2d;
 public class PartStep {
     private PartStep parentPartStep;
     private long probability;
-    private long subProbability;
+    private long addProbability = 0L;
+    private long subProbability = 0L;
     private final int[] dirProbability = new int[Cell.Dir.values().length];
     private Cell.Dir nextDir;
 
@@ -51,5 +52,17 @@ public class PartStep {
 
     public void setNextDir(final Cell.Dir nextDir) {
         this.nextDir = nextDir;
+    }
+
+    public long getAddProbability() {
+        return this.addProbability;
+    }
+
+    public void setAddProbability(final long addProbability) {
+        this.addProbability = addProbability;
+    }
+
+    public void addAddProbability(final long addProbability) {
+        this.addProbability += addProbability;
     }
 }

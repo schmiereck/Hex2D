@@ -215,19 +215,20 @@ public class HexGridService {
                         PartStep mostProbPartStep = null;
                         long mostProb = 0L;
                         for (final Cell.Dir dir : Cell.Dir.values()) {
+                            final Cell.Dir neighbourDir = this.addDir(dir, sourcePartStep.getNextDir());
                             final GridNode neighbourGridNode = this.getNeighbourGridNode(finPosX, finPosY,
-                                    this.addDir(dir, sourcePartStep.getNextDir()));
+                                    neighbourDir);
 
                             for (final PartStep nPartStep : neighbourGridNode.getPartStepList(this.getNextCellArrPos())) {
                                 if (nPartStep.getProbability() > mostProb) {
-                                    mostProb = nPartStep.getProbability();
+                                    //mostProb = nPartStep.getProbability();
+                                    mostProb = nPartStep.getProbability() * (sourcePartStep.getProb(neighbourDir) + 1L);
                                     mostProbPartStep = nPartStep;
                                 }
                             }
                         }
                         if (Objects.nonNull(mostProbPartStep)) {
-                            // Beeinflusst die folgenden Suchen, eigentlich erst in eine Temp-Variable eintragen und ganz am Schluss übertragen !!!
-                            mostProbPartStep.addProbability(difProbability);
+                            mostProbPartStep.addAddProbability(difProbability);
                         } else {
                             final Optional<PartStep> optionalExistingPartStep = this.searchExistingPartStep(gridNode, sourcePartStep);
 
@@ -246,6 +247,15 @@ public class HexGridService {
                             }
                         }
                     }
+                });
+            }
+        }
+        for (int posY = 0; posY < this.hexGrid.getNodeCountY(); posY++) {
+            for (int posX = 0; posX < this.hexGrid.getNodeCountX(); posX++) {
+                final GridNode gridNode = this.hexGrid.getGridNode(posX, posY);
+                gridNode.getPartStepList(this.getNextCellArrPos()).stream().forEach(partStep -> {
+                    partStep.addProbability(partStep.getAddProbability());
+                    partStep.setAddProbability(0L);
                 });
             }
         }
