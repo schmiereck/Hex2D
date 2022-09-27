@@ -4,10 +4,9 @@ import static de.schmiereck.hex2d.utils.DirUtils.calcAxisByDirNumber;
 import static de.schmiereck.hex2d.utils.DirUtils.calcDirNumberByAxis;
 import static de.schmiereck.hex2d.utils.DirUtils.calcDirProb;
 
-import de.schmiereck.hex2d.math.Num;
 import de.schmiereck.hex2d.math.NumService;
 
-import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.IntStream;
 
@@ -116,7 +115,8 @@ public class HexGridService {
     public void initialize(final int sizeX, final int sizeY) {
         this.hexGrid = new HexGrid(sizeX, sizeY);
 
-        final GridNode gridNode = this.hexGrid.getGridNode(3, 5);
+        //final GridNode gridNode = this.hexGrid.getGridNode(3, 5);
+        final GridNode gridNode = this.hexGrid.getGridNode(3, this.hexGrid.getNodeCountY() / 2);
 
         final PartStep partStep = new PartStep(null, PROBABILITY);
         gridNode.addPartStep(this.getActCellArrPos(), partStep);
@@ -167,10 +167,7 @@ public class HexGridService {
             for (int posX = 0; posX < this.hexGrid.getNodeCountX(); posX++) {
                 final GridNode gridNode = this.hexGrid.getGridNode(posX, posY);
                 for (final Cell.Dir dir : Cell.Dir.values()) {
-                    final int rowNo = posY % 2;
-                    final int[] offsetArr = DirOffsetArr[rowNo][dir.ordinal()];
-                    final GridNode sourceGridNode =
-                            this.hexGrid.getGridNode(posX + offsetArr[0], posY + offsetArr[1]);
+                    final GridNode sourceGridNode = this.getNeighbourGridNode(posX, posY, dir);
 
                     final Cell.Dir sourceDir = calcOppositeDir(dir);
                     sourceGridNode.getPartStepList(this.getActCellArrPos()).stream().forEach(sourcePartStep -> {
@@ -193,6 +190,7 @@ public class HexGridService {
                                     newPartStep.setProb(copyDir, copyDirProb);
                                 }
 
+                                newPartStep.setNextDir(this.incDir(sourcePartStep.getNextDir()));
                                 gridNode.addPartStep(this.getNextCellArrPos(), newPartStep);
                             }
                         }
@@ -202,6 +200,8 @@ public class HexGridService {
         }
         for (int posY = 0; posY < this.hexGrid.getNodeCountY(); posY++) {
             for (int posX = 0; posX < this.hexGrid.getNodeCountX(); posX++) {
+                final int finPosX = posX;
+                final int finPosY = posY;
                 final GridNode gridNode = this.hexGrid.getGridNode(posX, posY);
 
                 gridNode.getPartStepList(this.getActCellArrPos()).stream().forEach(sourcePartStep -> {
@@ -211,25 +211,60 @@ public class HexGridService {
                     final long difProbability = probability - subProbability;
 
                     if (difProbability > 0L) {
-                        final Optional<PartStep> optionalExistingPartStep = this.searchExistingPartStep(gridNode, sourcePartStep);
+                        // Looking for the neighbour with the highest probability.
+                        PartStep mostProbPartStep = null;
+                        long mostProb = 0L;
+                        for (final Cell.Dir dir : Cell.Dir.values()) {
+                            final GridNode neighbourGridNode = this.getNeighbourGridNode(finPosX, finPosY,
+                                    this.addDir(dir, sourcePartStep.getNextDir()));
 
-                        if (optionalExistingPartStep.isPresent()) {
-                            final PartStep existingPartStep = optionalExistingPartStep.get();
-                            existingPartStep.addProbability(difProbability);
-                        } else {
-                            final PartStep newPartStep = new PartStep(sourcePartStep, difProbability);
-
-                            for (final Cell.Dir copyDir : Cell.Dir.values()) {
-                                final int copyDirProb = sourcePartStep.getProb(copyDir);
-                                newPartStep.setProb(copyDir, copyDirProb);
+                            for (final PartStep nPartStep : neighbourGridNode.getPartStepList(this.getNextCellArrPos())) {
+                                if (nPartStep.getProbability() > mostProb) {
+                                    mostProb = nPartStep.getProbability();
+                                    mostProbPartStep = nPartStep;
+                                }
                             }
+                        }
+                        if (Objects.nonNull(mostProbPartStep)) {
+                            // Beeinflusst die folgenden Suchen, eigentlich erst in eine Temp-Variable eintragen und ganz am Schluss übertragen !!!
+                            mostProbPartStep.addProbability(difProbability);
+                        } else {
+                            final Optional<PartStep> optionalExistingPartStep = this.searchExistingPartStep(gridNode, sourcePartStep);
 
-                            gridNode.addPartStep(this.getNextCellArrPos(), newPartStep);
+                            if (optionalExistingPartStep.isPresent()) {
+                                final PartStep existingPartStep = optionalExistingPartStep.get();
+                                existingPartStep.addProbability(difProbability);
+                            } else {
+                                final PartStep newPartStep = new PartStep(sourcePartStep, difProbability);
+
+                                for (final Cell.Dir copyDir : Cell.Dir.values()) {
+                                    final int copyDirProb = sourcePartStep.getProb(copyDir);
+                                    newPartStep.setProb(copyDir, copyDirProb);
+                                }
+                                newPartStep.setNextDir(this.incDir(sourcePartStep.getNextDir()));
+                                gridNode.addPartStep(this.getNextCellArrPos(), newPartStep);
+                            }
                         }
                     }
                 });
             }
         }
+    }
+
+    private Cell.Dir incDir(final Cell.Dir dir) {
+        return Cell.Dir.values()[(dir.ordinal() + 1) % Cell.Dir.values().length];
+    }
+
+    private Cell.Dir addDir(final Cell.Dir aDir, final Cell.Dir bDir) {
+        return Cell.Dir.values()[(aDir.ordinal() + bDir.ordinal()) % Cell.Dir.values().length];
+    }
+
+    private GridNode getNeighbourGridNode(final int posX, final int posY, final Cell.Dir dir) {
+        final int rowNo = posY % 2;
+        final int[] offsetArr = DirOffsetArr[rowNo][dir.ordinal()];
+        final GridNode sourceGridNode =
+                this.hexGrid.getGridNode(posX + offsetArr[0], posY + offsetArr[1]);
+        return sourceGridNode;
     }
 
     private Optional<PartStep> searchExistingPartStep(final GridNode gridNode, final PartStep sourcePartStep) {
