@@ -59,3 +59,66 @@ In between four axis:
         37,5    12,5
 
 ````
+
+# Reflection
+Elektron nimmt Impuls des Photons auf,
+es wird eine verschränkte Kopie des Elektrons mit dem zusätzlichen Impuls erzeugt.
+Das kopierte Elektron will aber an seine ursprüngliche Position zurück
+und sendet dafür ein Photon aus.
+
+*Reflektieren wir mal über Reflexion – Ihre Frage*
+https://scienceblogs.de/ihrefrage/2018/11/06/reflektieren-wir-mal-ueber-reflexion/
+
+*Der Impuls des Photons*
+https://qudev.phys.ethz.ch/static/content/science/BuchPhysikIV/PhysikIVch4.html
+
+ ````
+ p
+. \.  .  .  .
+.  e  .  .  .
+.  .  .  .  .
+
+.  .  .  .  .
+.  e  .  .  .
+.  . \.  .  .
+.  .  e' .  .
+
+      p'
+.  . /.  .  .
+.  e  .  .  .
+.  .  .  .  .
+.  .  .  .  .
+````
+# Rotation
+NP, 
+AP, BP, CP, AN, BN, CN
+
+ ````
+
+      bn  cp     
+       \ /
+   an---A---ap  
+       / \
+      cn  bp     
+
+ ````
+a   b   c   d Step:1
+5            
+4   1        
+3   2        
+2   3       
+1   4       
+    5
+    4   1
+    3   2
+    2   3
+    1   4
+        5
+
+a   b   c   d Step:3
+5            
+2   3        
+    4   1       n2
+    1   4       
+        3   2   n2
+            5

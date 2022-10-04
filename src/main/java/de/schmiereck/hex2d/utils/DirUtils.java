@@ -2,6 +2,9 @@ package de.schmiereck.hex2d.utils;
 
 import de.schmiereck.hex2d.Cell;
 import de.schmiereck.hex2d.HexGridService;
+import de.schmiereck.hex2d.PartStep;
+
+import java.util.stream.IntStream;
 
 public class DirUtils {
     public static double calcDirProb(final double dir, final int axis) {
@@ -71,6 +74,16 @@ public class DirUtils {
         DirNumberArr[Cell.Dir.AN.ordinal()] = 3;
         DirNumberArr[Cell.Dir.BN.ordinal()] = 4;
         DirNumberArr[Cell.Dir.CP.ordinal()] = 5;
+    }
+
+    public static void initDirProb(final PartStep partStep, final Cell.Dir startDir, final double dirOffset) {
+        final int startDirNumber = calcDirNumberByAxis(startDir);
+        IntStream.rangeClosed(-2, 2).forEach(dirNumberOffset -> {
+            final int dirNumber = startDirNumber + dirNumberOffset;
+            final Cell.Dir dir = calcAxisByDirNumber(dirNumber);
+            final int probalility = (int)(Math.round(calcDirProb(dirOffset, dirNumberOffset)) / 2.0D);
+            partStep.setProb(dir, probalility);
+        });
     }
 
     public static Cell.Dir calcAxisByDirNumber(final int dirNumber) {

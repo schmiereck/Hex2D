@@ -3,6 +3,7 @@ package de.schmiereck.hex2d;
 import static de.schmiereck.hex2d.utils.DirUtils.calcAxisByDirNumber;
 import static de.schmiereck.hex2d.utils.DirUtils.calcDirNumberByAxis;
 import static de.schmiereck.hex2d.utils.DirUtils.calcDirProb;
+import static de.schmiereck.hex2d.utils.DirUtils.initDirProb;
 
 import de.schmiereck.hex2d.math.NumService;
 
@@ -75,7 +76,7 @@ public class HexGridService {
 
     private static final int[][][] DirOffsetArr = {
             {
-                    {0, 0},    // NP
+                    //!np {0, 0},    // NP
                     {1, 0},    // AP
                     {0, 1},    // BP
                     {0, -1},    // CP
@@ -84,7 +85,7 @@ public class HexGridService {
                     {-1, 1}     // CN
             },
             {
-                    {0, 0},    // NP
+                    //!np {0, 0},    // NP
                     {1, 0},    // AP
                     {1, 1},    // BP
                     {1, -1},    // CP
@@ -96,7 +97,7 @@ public class HexGridService {
 
     private static final Cell.Dir[] OppositeDirArr = new Cell.Dir[Cell.Dir.values().length];
     static {
-        OppositeDirArr[Cell.Dir.NP.ordinal()] = Cell.Dir.NP;
+        //!np OppositeDirArr[Cell.Dir.NP.ordinal()] = Cell.Dir.NP;
         OppositeDirArr[Cell.Dir.AN.ordinal()] = Cell.Dir.AP;
         OppositeDirArr[Cell.Dir.BN.ordinal()] = Cell.Dir.BP;
         OppositeDirArr[Cell.Dir.CN.ordinal()] = Cell.Dir.CP;
@@ -114,42 +115,47 @@ public class HexGridService {
 
     public void initialize(final int sizeX, final int sizeY) {
         this.hexGrid = new HexGrid(sizeX, sizeY);
+        {
+            //final GridNode gridNode = this.hexGrid.getGridNode(3, 5);
+            final GridNode gridNode = this.hexGrid.getGridNode(3, this.hexGrid.getNodeCountY() / 2);
 
-        //final GridNode gridNode = this.hexGrid.getGridNode(3, 5);
-        final GridNode gridNode = this.hexGrid.getGridNode(3, this.hexGrid.getNodeCountY() / 2);
+            final PartEvent partEvent = new PartEvent();
 
-        final PartStep partStep = new PartStep(null, PROBABILITY);
-        gridNode.addPartStep(this.getActCellArrPos(), partStep);
+            final PartStep partStep = new PartStep(partEvent, PROBABILITY);
+            gridNode.addPartStep(this.getActCellArrPos(), partStep);
 
-        //partStep.setProb(Cell.Dir.AP, PROBABILITY_1_1);
-        initDirProb(partStep, Cell.Dir.AP, 0.0D);
+            //partStep.setProb(Cell.Dir.AP, PROBABILITY_1_1);
+            initDirProb(partStep, Cell.Dir.AP, 0.0D);
 
-        //partStep.setProb(Cell.Dir.AP, PROBABILITY_1_2);
-        //partStep.setProb(Cell.Dir.CP, PROBABILITY_1_2);
-        //initDirProb(partStep, Cell.Dir.CP, 0.5D);
+            //partStep.setProb(Cell.Dir.AP, PROBABILITY_1_2);
+            //partStep.setProb(Cell.Dir.CP, PROBABILITY_1_2);
+            //initDirProb(partStep, Cell.Dir.CP, 0.5D);
 
-        //partStep.setProb(Cell.Dir.AP, PROBABILITY_2_3);
-        //partStep.setProb(Cell.Dir.CP, PROBABILITY_1_3);
-        //initDirProb(partStep, Cell.Dir.AP, -0.25D);
-        //initDirProb(partStep, Cell.Dir.CP, 0.75D);
+            //partStep.setProb(Cell.Dir.AP, PROBABILITY_2_3);
+            //partStep.setProb(Cell.Dir.CP, PROBABILITY_1_3);
+            //initDirProb(partStep, Cell.Dir.AP, -0.25D);
+            //initDirProb(partStep, Cell.Dir.CP, 0.75D);
 
-        //partStep.setProb(Cell.Dir.AP, PROBABILITY_9_10);
-        //partStep.setProb(Cell.Dir.CP, PROBABILITY_1_10);
+            //partStep.setProb(Cell.Dir.AP, PROBABILITY_9_10);
+            //partStep.setProb(Cell.Dir.CP, PROBABILITY_1_10);
 
-        //partStep.setProb(Cell.Dir.CN, PROBABILITY_1_2);
-        //partStep.setProb(Cell.Dir.BP, PROBABILITY_1_2);
-        //initDirProb(partStep, Cell.Dir.BP, 0.5D);
-        //initDirProb(partStep, Cell.Dir.CN, -0.5D);
-    }
+            //partStep.setProb(Cell.Dir.CN, PROBABILITY_1_2);
+            //partStep.setProb(Cell.Dir.BP, PROBABILITY_1_2);
+            //initDirProb(partStep, Cell.Dir.BP, 0.5D);
+            //initDirProb(partStep, Cell.Dir.CN, -0.5D);
+        }
+        {
+            //final GridNode gridNode = this.hexGrid.getGridNode(3, 5);
+            final GridNode gridNode = this.hexGrid.getGridNode(this.hexGrid.getNodeCountX() - 3, this.hexGrid.getNodeCountY() / 2);
 
-    private void initDirProb(final PartStep partStep, final Cell.Dir startDir, final double dirOffset) {
-        final int startDirNumber = calcDirNumberByAxis(startDir);
-        IntStream.rangeClosed(-2, 2).forEach(dirNumberOffset -> {
-            final int dirNumber = startDirNumber + dirNumberOffset;
-            final Cell.Dir dir = calcAxisByDirNumber(dirNumber);
-            final int probalility = (int)(Math.round(calcDirProb(dirOffset, dirNumberOffset)) / 2.0D);
-            partStep.setProb(dir, probalility);
-        });
+            final PartEvent partEvent = new PartEvent();
+
+            final PartStep partStep = new PartStep(partEvent, PROBABILITY);
+            gridNode.addPartStep(this.getActCellArrPos(), partStep);
+
+            //partStep.setProb(Cell.Dir.AP, PROBABILITY_1_1);
+            //initDirProb(partStep, Cell.Dir.AP, 0.0D);
+        }
     }
 
     public void calcNext() {
@@ -183,7 +189,7 @@ public class HexGridService {
                                 final PartStep existingPartStep = optionalExistingPartStep.get();
                                 existingPartStep.addProbability(newProbability);
                             } else {
-                                final PartStep newPartStep = new PartStep(sourcePartStep, newProbability);
+                                final PartStep newPartStep = new PartStep(sourcePartStep.getPartEvent(), newProbability);
 
                                 for (final Cell.Dir copyDir : Cell.Dir.values()) {
                                     final int copyDirProb = sourcePartStep.getProb(copyDir);
@@ -220,10 +226,12 @@ public class HexGridService {
                                     neighbourDir);
 
                             for (final PartStep nPartStep : neighbourGridNode.getPartStepList(this.getNextCellArrPos())) {
-                                if (nPartStep.getProbability() > mostProb) {
-                                    //mostProb = nPartStep.getProbability();
-                                    mostProb = nPartStep.getProbability() * (sourcePartStep.getProb(neighbourDir) + 1L);
-                                    mostProbPartStep = nPartStep;
+                                if (this.isCompatible(sourcePartStep, nPartStep)) {
+                                    if (nPartStep.getProbability() > mostProb) {
+                                        //mostProb = nPartStep.getProbability();
+                                        mostProb = nPartStep.getProbability() * (sourcePartStep.getProb(neighbourDir) + 1L);
+                                        mostProbPartStep = nPartStep;
+                                    }
                                 }
                             }
                         }
@@ -236,7 +244,7 @@ public class HexGridService {
                                 final PartStep existingPartStep = optionalExistingPartStep.get();
                                 existingPartStep.addProbability(difProbability);
                             } else {
-                                final PartStep newPartStep = new PartStep(sourcePartStep, difProbability);
+                                final PartStep newPartStep = new PartStep(sourcePartStep.getPartEvent(), difProbability);
 
                                 for (final Cell.Dir copyDir : Cell.Dir.values()) {
                                     final int copyDirProb = sourcePartStep.getProb(copyDir);
@@ -288,8 +296,10 @@ public class HexGridService {
     }
 
     private boolean isCompatible(final PartStep sourcePartStep, final PartStep partStep) {
-        // at the moment are all partSteps compatible (same dir probability)
-        return true;
+        // at the moment are all partSteps
+        // from the same Part-Event
+        // compatible (same dir probability)
+        return sourcePartStep.getPartEvent() == partStep.getPartEvent();
     }
 
     private void clearNextGrid() {

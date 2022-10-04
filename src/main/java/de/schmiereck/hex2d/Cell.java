@@ -1,12 +1,18 @@
 package de.schmiereck.hex2d;
 
+import static de.schmiereck.hex2d.Cell.Dir.*;
+
 import java.util.ArrayList;
 import java.util.List;
 
 public class Cell {
     public enum Dir {
-        NP, AP, BP, CP, AN, BN, CN
+        //!np NP,
+        AP, BP, CP, AN, BN, CN
     }
+    //public static Dir[] NDir = {
+    //        AP, BP, CP, AN, BN, CN
+    //};
 
     private List<PartStep> partStepList = new ArrayList<>();
 
