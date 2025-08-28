@@ -1,15 +1,12 @@
-package de.schmiereck.hex2d;
+package de.schmiereck.hex2d.step0.service;
 
-import static de.schmiereck.hex2d.utils.DirUtils.calcAxisByDirNumber;
-import static de.schmiereck.hex2d.utils.DirUtils.calcDirNumberByAxis;
-import static de.schmiereck.hex2d.utils.DirUtils.calcDirProb;
-import static de.schmiereck.hex2d.utils.DirUtils.initDirProb;
+import static de.schmiereck.hex2d.step0.utils.DirUtils.calcOppositeDir;
+import static de.schmiereck.hex2d.step0.utils.DirUtils.initDirProb;
 
 import de.schmiereck.hex2d.math.NumService;
 
 import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.IntStream;
 
 import org.springframework.stereotype.Component;
 
@@ -94,17 +91,6 @@ public class HexGridService {
                     {0, 1}     // CN
             }
     };
-
-    private static final Cell.Dir[] OppositeDirArr = new Cell.Dir[Cell.Dir.values().length];
-    static {
-        //!np OppositeDirArr[Cell.Dir.NP.ordinal()] = Cell.Dir.NP;
-        OppositeDirArr[Cell.Dir.AN.ordinal()] = Cell.Dir.AP;
-        OppositeDirArr[Cell.Dir.BN.ordinal()] = Cell.Dir.BP;
-        OppositeDirArr[Cell.Dir.CN.ordinal()] = Cell.Dir.CP;
-        OppositeDirArr[Cell.Dir.AP.ordinal()] = Cell.Dir.AN;
-        OppositeDirArr[Cell.Dir.BP.ordinal()] = Cell.Dir.BN;
-        OppositeDirArr[Cell.Dir.CP.ordinal()] = Cell.Dir.CN;
-    }
 
     private NumService numService = new NumService(PROBABILITY);
 
@@ -309,10 +295,6 @@ public class HexGridService {
                 gridNode.getPartStepList(this.getNextCellArrPos()).clear();
             }
         }
-    }
-
-    private Cell.Dir calcOppositeDir(final Cell.Dir dir) {
-        return OppositeDirArr[dir.ordinal()];
     }
 
     public HexGrid getHexGrid() {

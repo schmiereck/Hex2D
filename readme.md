@@ -11,21 +11,21 @@ Outgoing probabilities are stored in a chain.
 
 Chained Bruch:
 
-		4	10	1	5	2	
-	100	25	2,5	2,5	0,5	0,25
-		=100/4
+        4    10    1    5    2    
+    100    25    2,5    2,5    0,5    0,25
+        =100/4
 
 Order changed, same Result:
 
-		10	5	4	2	1	
-	100	10	2	0,5	0,25	0,25
+        10    5    4    2    1    
+    100    10    2    0,5    0,25    0,25
 
 Multiply the numerators and then divide:
 
-							=10*5*4*2*1
-		10	5	4	2	1	400
-	100	10	2	0,5	0,25	0,25	
-							=100/400
+                            =10*5*4*2*1
+        10    5    4    2    1    400
+    100    10    2    0,5    0,25    0,25    
+                            =100/400
 
 # Direction
 In between four axis:
@@ -122,3 +122,82 @@ a   b   c   d Step:3
     1   4       
         3   2   n2
             5
+
+ ````
+         2,  ,  ,  ,  ,   
+         1, 2,  ,  ,  ,   
+          , 3,  ,  ,  ,   
+          ,  , 3,  ,  ,   
+          ,  , 2, 1,  ,   
+          ,  ,  , 2,  ,   
+          ,  ,  , 1, 2,   
+          ,  ,  ,  , 3,   
+          ,  ,  ,  ,  , 3 
+         1,  ,  ,  ,  , 2 
+         2,  ,  ,  ,  ,   
+
+      bn  cp     
+       \ /
+   an---A---ap 2
+       / \
+      cn  bp     
+
+      bn  cp     
+       \ /
+   an---A---ap 1
+       / \
+      cn  bp 
+             2
+
+      bn  cp     
+       \ /
+   an---A---ap 
+       / \
+      cn  bp 
+               3
+
+      bn  cp     
+       \ /
+   an---A---ap 
+       / \
+      cn  bp 
+     3         
+
+      bn  cp     
+       \ /
+ 1 an---A---ap 
+       / \
+      cn  bp 
+     2         
+
+      bn  cp     
+       \ /
+ 2 an---A---ap 
+       / \
+      cn  bp 
+      
+    1 bn  cp     
+       \ /
+ 2 an---A---ap 
+       / \
+      cn  bp 
+      
+    3 bn  cp     
+       \ /
+   an---A---ap 
+       / \
+      cn  bp 
+      
+      bn  cp 3    
+       \ /
+   an---A---ap 
+       / \
+      cn  bp 
+      
+      bn  cp 2    
+       \ /
+   an---A---ap 1
+       / \
+      cn  bp 
+               
+ ````

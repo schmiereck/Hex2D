@@ -1,4 +1,4 @@
-package de.schmiereck.hex2d;
+package de.schmiereck.hex2d.step0.view;
 
 import javafx.stage.Stage;
 
@@ -10,6 +10,6 @@ public class StageReadyEvent extends ApplicationEvent {
     }
 
     public Stage getStage() {
-        return ((Stage) getSource());
+        return ((Stage) this.getSource());
     }
 }

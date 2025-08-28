@@ -1,12 +1,28 @@
-package de.schmiereck.hex2d.utils;
+package de.schmiereck.hex2d.step0.utils;
 
-import de.schmiereck.hex2d.Cell;
-import de.schmiereck.hex2d.HexGridService;
-import de.schmiereck.hex2d.PartStep;
+import de.schmiereck.hex2d.step0.service.Cell;
+import de.schmiereck.hex2d.step0.service.HexGridService;
+import de.schmiereck.hex2d.step0.service.PartStep;
 
 import java.util.stream.IntStream;
 
 public class DirUtils {
+
+    private static final Cell.Dir[] OppositeDirArr = new Cell.Dir[Cell.Dir.values().length];
+    static {
+        //!np OppositeDirArr[Cell.Dir.NP.ordinal()] = Cell.Dir.NP;
+        OppositeDirArr[Cell.Dir.AN.ordinal()] = Cell.Dir.AP;
+        OppositeDirArr[Cell.Dir.BN.ordinal()] = Cell.Dir.BP;
+        OppositeDirArr[Cell.Dir.CN.ordinal()] = Cell.Dir.CP;
+        OppositeDirArr[Cell.Dir.AP.ordinal()] = Cell.Dir.AN;
+        OppositeDirArr[Cell.Dir.BP.ordinal()] = Cell.Dir.BN;
+        OppositeDirArr[Cell.Dir.CP.ordinal()] = Cell.Dir.CN;
+    }
+
+    public static Cell.Dir calcOppositeDir(final Cell.Dir dir) {
+        return OppositeDirArr[dir.ordinal()];
+    }
+
     public static double calcDirProb(final double dir, final int axis) {
         if (dir >= 0.0D) {
             return switch (axis) {

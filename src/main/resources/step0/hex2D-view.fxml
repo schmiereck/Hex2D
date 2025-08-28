@@ -11,7 +11,7 @@
 <BorderPane
         id="mainBoderPane"
         xmlns:fx="http://javafx.com/fxml"
-        fx:controller="de.schmiereck.hex2d.Hex2DController"
+        fx:controller="de.schmiereck.hex2d.step0.view.Hex2DController"
 >
     <top>
         <HBox alignment="TOP_LEFT" spacing="10.0">

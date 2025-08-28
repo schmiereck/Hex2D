@@ -1,14 +1,12 @@
 package de.schmiereck.hex2d.utils;
 
-import static de.schmiereck.hex2d.utils.DirUtils.calcAxisByDirNumber;
-import static de.schmiereck.hex2d.utils.DirUtils.calcDirNumberByAxis;
-import static de.schmiereck.hex2d.utils.DirUtils.calcDirProb;
+import static de.schmiereck.hex2d.step0.utils.DirUtils.calcAxisByDirNumber;
+import static de.schmiereck.hex2d.step0.utils.DirUtils.calcDirNumberByAxis;
 import static org.junit.jupiter.api.Assertions.*;
 
-import de.schmiereck.hex2d.Cell;
-import de.schmiereck.hex2d.HexGridService;
-
-import java.util.stream.IntStream;
+import de.schmiereck.hex2d.step0.service.Cell;
+import de.schmiereck.hex2d.step0.service.HexGridService;
+import de.schmiereck.hex2d.step0.utils.DirUtils;
 
 public class DirUtilsTest {
 

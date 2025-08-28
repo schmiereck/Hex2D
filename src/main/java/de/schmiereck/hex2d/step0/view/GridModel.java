@@ -1,4 +1,4 @@
-package de.schmiereck.hex2d;
+package de.schmiereck.hex2d.step0.view;
 
 import javafx.scene.shape.Circle;
 

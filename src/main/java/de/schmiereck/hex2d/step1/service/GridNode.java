@@ -1,4 +1,4 @@
-package de.schmiereck.hex2d;
+package de.schmiereck.hex2d.step1.service;
 
 import java.util.List;
 

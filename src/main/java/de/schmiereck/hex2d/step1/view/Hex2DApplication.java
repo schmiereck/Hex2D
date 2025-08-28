@@ -1,32 +1,24 @@
-package de.schmiereck.hex2d;
+package de.schmiereck.hex2d.step1.view;
 
+import de.schmiereck.hex2d.step1.S1Hex2DMain;
 import javafx.application.Application;
 import javafx.application.Platform;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Scene;
-import javafx.scene.layout.Pane;
-import javafx.scene.paint.Color;
-import javafx.scene.shape.Circle;
 import javafx.stage.Stage;
-
-import java.io.IOException;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.stereotype.Component;
 
+import java.io.IOException;
+
 @Component
-@ComponentScan(basePackages="de.schmiereck.hex2d")
+@ComponentScan(basePackages="de.schmiereck.hex2d.step1")
 public class Hex2DApplication extends Application {
     private ConfigurableApplicationContext applicationContext;
 
     @Override
     public void init() {
-        this.applicationContext = new SpringApplicationBuilder(Hex2DMain.class).run();
+        this.applicationContext = new SpringApplicationBuilder(S1Hex2DMain.class).run();
     }
 
     @Override

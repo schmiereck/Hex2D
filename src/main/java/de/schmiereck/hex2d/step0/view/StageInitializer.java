@@ -1,11 +1,11 @@
-package de.schmiereck.hex2d;
+package de.schmiereck.hex2d.step0.view;
 
+import de.schmiereck.hex2d.step0.service.HexGrid;
+import de.schmiereck.hex2d.step0.service.HexGridService;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.layout.Pane;
-import javafx.scene.paint.Color;
-import javafx.scene.shape.Circle;
 import javafx.stage.Stage;
 
 import java.io.IOException;
@@ -20,7 +20,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class StageInitializer implements ApplicationListener<StageReadyEvent> {
     //@Value("classpath:/de/schmiereck/hex2d/hex2D-view.fxml")
-    @Value("classpath:/hex2D-view.fxml")
+    @Value("classpath:/step0/hex2D-view.fxml")
     private Resource chartResource;
     private String applicationTitle;
     private ApplicationContext applicationContext;
@@ -28,7 +28,7 @@ public class StageInitializer implements ApplicationListener<StageReadyEvent> {
     @Autowired
     private HexGridService hexGridService;
 
-    public StageInitializer(@Value("${spring.application.ui.title}") final String applicationTitle,
+    public StageInitializer(@Value("${spring.application.ui.title} (Step-0)") final String applicationTitle,
                             final ApplicationContext applicationContext) {
         this.applicationTitle = applicationTitle;
         this.applicationContext = applicationContext;
@@ -38,8 +38,8 @@ public class StageInitializer implements ApplicationListener<StageReadyEvent> {
     public void onApplicationEvent(final StageReadyEvent event) {
         final Stage stage = event.getStage();
         try {
-            //FXMLLoader fxmlLoader = new FXMLLoader(Hex2DApplication.class.getResource("hex2D-view.fxml"));
-            FXMLLoader fxmlLoader = new FXMLLoader(this.chartResource.getURL());
+            //final FXMLLoader fxmlLoader = new FXMLLoader(Hex2DApplication.class.getResource("hex2D-view.fxml"));
+            final FXMLLoader fxmlLoader = new FXMLLoader(this.chartResource.getURL());
             fxmlLoader.setControllerFactory(aClass -> this.applicationContext.getBean(aClass));
 
             final Parent parent = fxmlLoader.load();

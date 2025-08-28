@@ -1,5 +1,7 @@
-package de.schmiereck.hex2d;
+package de.schmiereck.hex2d.step1.view;
 
+import de.schmiereck.hex2d.step1.service.HexGrid;
+import de.schmiereck.hex2d.step1.service.HexGridService;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Label;
@@ -7,12 +9,11 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.net.URL;
 import java.util.ResourceBundle;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 @Component
 public class Hex2DController implements Initializable
@@ -78,10 +79,11 @@ public class Hex2DController implements Initializable
                 final Circle gridNodeCircle = gridCellModel.getShape();
                 final double gridNodeProbability = this.hexGridService.retrieveActGridNodeProbability(posX, posY);
                 if (gridNodeProbability > 0) {
-                    gridNodeCircle.setRadius((gridNodeProbability * 9.0D) / HexGridService.PROBABILITY);
+                    final double radius = (gridNodeProbability * 9.0D) / HexGridService.PROBABILITY;
+                    gridNodeCircle.setRadius(Math.max(0.5D, radius));
                     gridNodeCircle.setFill(Color.YELLOW);
                 } else {
-                    gridNodeCircle.setRadius(1.0D);
+                    gridNodeCircle.setRadius(0.5D);
                     gridNodeCircle.setFill(Color.DARKGRAY);
                 }
             }

@@ -1,10 +1,10 @@
-package de.schmiereck.hex2d.utils;
+package de.schmiereck.hex2d.step0.utils;
 
-import static de.schmiereck.hex2d.utils.DirUtils.calcAxisByDirNumber;
-import static de.schmiereck.hex2d.utils.DirUtils.calcDirNumberByAxis;
+import static de.schmiereck.hex2d.step0.utils.DirUtils.calcAxisByDirNumber;
+import static de.schmiereck.hex2d.step0.utils.DirUtils.calcDirNumberByAxis;
 
-import de.schmiereck.hex2d.Cell;
-import de.schmiereck.hex2d.PartStep;
+import de.schmiereck.hex2d.step0.service.Cell;
+import de.schmiereck.hex2d.step0.service.PartStep;
 
 public class RotationUtils {
 
@@ -48,13 +48,17 @@ public class RotationUtils {
         long rv = 0L;
 
         for (final Cell.Dir dir : Cell.Dir.values()) {
-            final int prob = maxProb - partStep.getProb(dir);
-            final int rot = partStep.getRot(dir);
-
-            final int r = (prob * rot) / maxProb;
-
-            rv += r;
+            rv += calcRotateValue(partStep, dir, maxProb, maxRot);
         }
         return rv;
+    }
+
+    public static int calcRotateValue(final PartStep partStep, final Cell.Dir dir, final int maxProb, final int maxRot) {
+        final int pProb = partStep.getProb(dir);
+        final int nProb = partStep.getProb(DirUtils.calcOppositeDir(dir));
+        final int prob = maxProb - (pProb + nProb);
+        final int rot = partStep.getRot(dir);
+
+        return (prob * rot) / maxProb;
     }
 }

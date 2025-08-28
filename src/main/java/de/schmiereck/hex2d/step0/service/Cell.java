@@ -1,6 +1,4 @@
-package de.schmiereck.hex2d;
-
-import static de.schmiereck.hex2d.Cell.Dir.*;
+package de.schmiereck.hex2d.step0.service;
 
 import java.util.ArrayList;
 import java.util.List;
