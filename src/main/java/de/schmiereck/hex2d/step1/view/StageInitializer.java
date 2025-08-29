@@ -45,8 +45,8 @@ public class StageInitializer implements ApplicationListener<StageReadyEvent> {
 
             final HexGrid hexGrid = this.hexGridService.getHexGrid();
 
-            final double width = 640; //hexGrid.getNodeCountX() * GridModel.StepX;
-            final double height = 460; //(hexGrid.getNodeCountY()) * GridModel.StepY;
+            final double width = 640 * 2; //hexGrid.getNodeCountX() * GridModel.StepX;
+            final double height = 460 * 2; //(hexGrid.getNodeCountY()) * GridModel.StepY;
 
             final Scene scene = new Scene(parent, width, height);
 

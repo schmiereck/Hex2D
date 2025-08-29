@@ -30,6 +30,10 @@ public class Hex2DController implements Initializable
     @Autowired
     private HexGridService hexGridService;
 
+    public double StepX;
+    public double StepHalfX;
+    public double StepY;
+
     private GridModel gridModel = new GridModel();
 
     @FXML
@@ -45,7 +49,17 @@ public class Hex2DController implements Initializable
 
         final HexGrid hexGrid = this.hexGridService.getHexGrid();
 
+        final double width = this.mainPane.getWidth();
+        final double height = this.mainPane.getHeight();
+
         this.gridModel.init(hexGrid.getNodeCountX(), hexGrid.getNodeCountY());
+
+        this.StepX = 32.0D;
+        //this.StepX = width / hexGrid.getNodeCountX();
+        this.StepHalfX = StepX / 2.0D;
+        this.StepY = Math.sqrt(Math.pow(StepX, 2.0D) - Math.pow(StepHalfX, 2.0D));
+
+        this.initGridModel(this.gridModel);
 
         for (int posY = 0; posY < this.gridModel.getNodeCountY(); posY++) {
             for (int posX = 0; posX < this.gridModel.getNodeCountX(); posX++) {
@@ -63,6 +77,25 @@ public class Hex2DController implements Initializable
         this.updateView();
     }
 
+    private void initGridModel(final GridModel gridModel) {
+        for (int posY = 0; posY < gridModel.getNodeCountY(); posY++) {
+            for (int posX = 0; posX < gridModel.getNodeCountX(); posX++) {
+                final double screenPosX = this.calcScreenPosX(posX, posY);
+                final double screenPosY = this.calcScreenPosY(posX, posY);
+                gridModel.setGridCellModel(posX, posY, new GridCellModel(screenPosX, screenPosY));
+            }
+        }
+    }
+
+    private double calcScreenPosX(final int posX, final int posY) {
+        return (posX * StepX) + ((posY % 2) * StepHalfX);
+    }
+
+    private double calcScreenPosY(final int posX, final int posY) {
+        return (posY * StepY);
+    }
+
+
     @FXML
     protected void onNextButtonClick() {
         this.hexGridService.calcNext();
@@ -79,7 +112,7 @@ public class Hex2DController implements Initializable
                 final Circle gridNodeCircle = gridCellModel.getShape();
                 final double gridNodeProbability = this.hexGridService.retrieveActGridNodeProbability(posX, posY);
                 if (gridNodeProbability > 0) {
-                    final double radius = (gridNodeProbability * 9.0D) / HexGridService.PROBABILITY;
+                    final double radius = (gridNodeProbability * this.StepX) / HexGridService.PROBABILITY;
                     gridNodeCircle.setRadius(Math.max(0.5D, radius));
                     gridNodeCircle.setFill(Color.YELLOW);
                 } else {

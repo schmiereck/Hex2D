@@ -3,6 +3,7 @@ package de.schmiereck.hex2d.step1.service;
 import de.schmiereck.hex2d.math.NumService;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -108,7 +109,7 @@ public class HexGridService {
 
             final PartEvent partEvent = new PartEvent();
 
-            final PartStep partStep = new PartStep(partEvent, PROBABILITY);
+            final PartStep partStep = new PartStep(partEvent, PROBABILITY, 0L);
             gridNode.addPartStep(this.getActCellArrPos(), partStep);
 
             //partStep.setProb(Cell.Dir.AP, PROBABILITY_1_1);
@@ -142,7 +143,7 @@ public class HexGridService {
 
             final PartEvent partEvent = new PartEvent();
 
-            final PartStep partStep = new PartStep(partEvent, PROBABILITY);
+            final PartStep partStep = new PartStep(partEvent, PROBABILITY, 0L);
             gridNode.addPartStep(this.getActCellArrPos(), partStep);
 
             //partStep.setProb(Cell.Dir.AP, PROBABILITY_1_1);
@@ -186,10 +187,10 @@ public class HexGridService {
                         final long newSpaceLProbability = newProbability;// / 2;
                         final long newSpaceRProbability = newProbability;// - newLProbability;
 
-                        final PartStep newTimeLPartStep = new PartStep(sourcePartStep.getPartEvent(), newTimeLProbability);
-                        final PartStep newTimeRPartStep = new PartStep(sourcePartStep.getPartEvent(), newTimeRProbability);
-                        final PartStep newSpaceLPartStep = new PartStep(sourcePartStep.getPartEvent(), newSpaceLProbability);
-                        final PartStep newSpaceRPartStep = new PartStep(sourcePartStep.getPartEvent(), newSpaceRProbability);
+                        final PartStep newTimeLPartStep = new PartStep(sourcePartStep.getPartEvent(), newTimeLProbability, sourcePartStep.getEigentime() + 1L);
+                        final PartStep newTimeRPartStep = new PartStep(sourcePartStep.getPartEvent(), newTimeRProbability, sourcePartStep.getEigentime() + 1L);
+                        final PartStep newSpaceLPartStep = new PartStep(sourcePartStep.getPartEvent(), newSpaceLProbability, sourcePartStep.getEigentime());
+                        final PartStep newSpaceRPartStep = new PartStep(sourcePartStep.getPartEvent(), newSpaceRProbability, sourcePartStep.getEigentime());
 
                         targetTimeLGridNode.addPartStep(this.getNextCellArrPos(), newTimeLPartStep);
                         targetTimeRGridNode.addPartStep(this.getNextCellArrPos(), newTimeRPartStep);
@@ -200,11 +201,11 @@ public class HexGridService {
                                 (newTimeLProbability + newTimeRProbability + newSpaceLProbability + newSpaceRProbability);
 
                         if (leftProb > 0) {
-                            final PartStep newPartStep = new PartStep(sourcePartStep.getPartEvent(), leftProb);
+                            final PartStep newPartStep = new PartStep(sourcePartStep.getPartEvent(), leftProb, sourcePartStep.getEigentime());
                             sourceGridNode.addPartStep(this.getNextCellArrPos(), newPartStep);
                         }
                     } else {
-                        final PartStep newPartStep = new PartStep(sourcePartStep.getPartEvent(), sourceDirProb);
+                        final PartStep newPartStep = new PartStep(sourcePartStep.getPartEvent(), sourceDirProb, sourcePartStep.getEigentime());
                         sourceGridNode.addPartStep(this.getNextCellArrPos(), newPartStep);
                     }
                 });
@@ -217,10 +218,8 @@ public class HexGridService {
                 final GridNode sourceGridNode = this.hexGrid.getGridNode(posX, posY);
 
                 final List<PartStep> partStepList = sourceGridNode.getPartStepList(this.getNextCellArrPos());
-
-                partStepList.stream().forEach(sourcePartStep -> {
-                    final long sourceDirProb = sourcePartStep.getProbability();
-                });
+                // Kompatible PartSteps zu einem PartStep mit summierter Probability zusammenfassen:
+                mergeCompatiblePartSteps(partStepList);
             }
         }
     }
@@ -255,7 +254,38 @@ public class HexGridService {
         // at the moment are all partSteps
         // from the same Part-Event
         // compatible (same dir probability)
-        return sourcePartStep.getPartEvent() == partStep.getPartEvent();
+        return (sourcePartStep.getPartEvent() == partStep.getPartEvent()) &&
+                (sourcePartStep.getEigentime() == partStep.getEigentime());
+    }
+
+    // Fügt alle kompatiblen PartSteps einer Liste zu einem Eintrag mit der Gesamtsumme zusammen.
+    private void mergeCompatiblePartSteps(final List<PartStep> partStepList) {
+        if (partStepList == null || partStepList.size() <= 1) return;
+
+        final List<PartStep> representativePartStepList = new ArrayList<>();
+        final List<Long> sumProbList = new ArrayList<>();
+
+        for (final PartStep partStep : partStepList) {
+            int foundPartStepPos = -1;
+            for (int representativePartStepPos = 0; representativePartStepPos < representativePartStepList.size(); representativePartStepPos++) {
+                if (this.isCompatible(partStep, representativePartStepList.get(representativePartStepPos))) {
+                    foundPartStepPos = representativePartStepPos;
+                    break;
+                }
+            }
+            if (foundPartStepPos >= 0) {
+                sumProbList.set(foundPartStepPos, sumProbList.get(foundPartStepPos) + partStep.getProbability());
+            } else {
+                representativePartStepList.add(partStep);
+                sumProbList.add(partStep.getProbability());
+            }
+        }
+
+        partStepList.clear();
+        for (int representativePartStepPos = 0; representativePartStepPos < representativePartStepList.size(); representativePartStepPos++) {
+            final PartStep repPartStep = representativePartStepList.get(representativePartStepPos);
+            partStepList.add(new PartStep(repPartStep.getPartEvent(), sumProbList.get(representativePartStepPos), repPartStep.getEigentime()));
+        }
     }
 
     private void clearNextGrid() {

@@ -14,10 +14,12 @@ public class PartStep {
      * -100 to +100
      */
     private long dir;
+    private long eigentime;
 
-    public PartStep(final PartEvent partEvent, final long probability) {
+    public PartStep(final PartEvent partEvent, final long probability, final long eigentime) {
         this.partEvent = partEvent;
         this.probability = probability;
+        this.eigentime = eigentime;
         //np this.nextDir = Cell.Dir.NP;
         //this.nextDir = Cell.Dir.AP;
         //this.rotDir = Cell.Dir.AP;
@@ -29,6 +31,10 @@ public class PartStep {
 
     public long getProbability() {
         return this.probability;
+    }
+
+    public long getEigentime() {
+        return this.eigentime;
     }
 
     public void addProbability(final long probability) {
