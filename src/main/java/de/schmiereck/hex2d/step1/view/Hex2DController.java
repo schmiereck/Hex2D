@@ -106,20 +106,56 @@ public class Hex2DController implements Initializable
     private void updateView() {
         this.counterText.setText(String.format("Step: %d (Part-Steps: %,d)", this.hexGridService.retrieveStepCount(), this.hexGridService.retrievePartStepCount()));
 
+        // 1. Durchlauf: min/max positive Wahrscheinlichkeiten bestimmen
+        double minPos = Double.POSITIVE_INFINITY;
+        double maxPos = 0.0D;
+        for (int posY = 0; posY < this.gridModel.getNodeCountY(); posY++) {
+            for (int posX = 0; posX < this.gridModel.getNodeCountX(); posX++) {
+                //final double gridNodeProbability = this.hexGridService.retrieveActGridNodeProbability(posX, posY);
+                final double p = this.hexGridService.retrieveActGridNodeProbabilityOverParts(posX, posY);
+                if (p > 0.0D) {
+                    if (p < minPos) minPos = p;
+                    if (p > maxPos) maxPos = p;
+                }
+            }
+        }
+
+        final double minRadius = 0.5D;
+        final double maxRadius = Math.max(minRadius, this.StepX * 0.45D);
+
+        // 2. Durchlauf: logarithmisch skalierte Darstellung
         for (int posY = 0; posY < this.gridModel.getNodeCountY(); posY++) {
             for (int posX = 0; posX < this.gridModel.getNodeCountX(); posX++) {
                 final GridCellModel gridCellModel = this.gridModel.getGridCellModel(posX, posY);
                 final Circle gridNodeCircle = gridCellModel.getShape();
-                final double gridNodeProbability = this.hexGridService.retrieveActGridNodeProbability(posX, posY);
-                if (gridNodeProbability > 0) {
-                    final double radius = (gridNodeProbability * this.StepX) / HexGridService.PROBABILITY;
-                    gridNodeCircle.setRadius(Math.max(0.5D, radius));
+                final double p = this.hexGridService.retrieveActGridNodeProbabilityOverParts(posX, posY);
+
+                if ((p > 0.0D) && (maxPos > 0.0D) && (minPos != Double.POSITIVE_INFINITY)) {
+                    final double radius = scaleProbabilityLog(p, minPos, maxPos, minRadius, maxRadius);
+                    gridNodeCircle.setRadius(radius);
                     gridNodeCircle.setFill(Color.YELLOW);
                 } else {
-                    gridNodeCircle.setRadius(0.5D);
+                    gridNodeCircle.setRadius(minRadius);
                     gridNodeCircle.setFill(Color.DARKGRAY);
                 }
             }
         }
+    }
+
+    // Neue Hilfsmethode: Logarithmische Skalierung in [minR, maxR]
+    private double scaleProbabilityLog(final double value, final double minPos, final double maxPos,
+                                       final double minR, final double maxR) {
+        if ((value <= 0.0D) || (minPos <= 0.0D) || (maxPos <= 0.0D)) return minR;
+        if (minPos == maxPos) return (minR + maxR) / 2.0D;
+
+        final double lv = Math.log(value);
+        final double lmin = Math.log(minPos);
+        final double lmax = Math.log(maxPos);
+
+        double t = (lv - lmin) / (lmax - lmin);
+        if (t < 0.0D) t = 0.0D;
+        if (t > 1.0D) t = 1.0D;
+
+        return minR + (t * (maxR - minR));
     }
 }

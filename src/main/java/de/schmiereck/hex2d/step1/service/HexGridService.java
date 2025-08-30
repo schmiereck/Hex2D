@@ -357,4 +357,53 @@ public class HexGridService {
         }
         return partStepCount;
     }
+
+    /**
+     * Berechnet die Probability eines Nodes über alle Parts per Pfadintegral.
+     * - Eigentime steuert die Phase: eigentime % 4 → Winkel 0°, 60°, 120°, 180°.
+     * - Amplitude je Part = sqrt(p_i / PROBABILITY) * e^{i*phi}.
+     * - Gesamte Probability = |Summe(Amplituden)|^2 * PROBABILITY.
+     *
+     * @return Probability im Bereich [0, PROBABILITY].
+     */
+    public double retrieveActGridNodeProbabilityOverParts(final int posX, final int posY) {
+        final GridNode gridNode = this.hexGrid.getGridNode(posX, posY);
+        final List<PartStep> partSteps = gridNode.getPartStepList(this.getActCellArrPos());
+        if (partSteps == null || partSteps.isEmpty()) return 0.0D;
+
+        double sumRe = 0.0D;
+        double sumIm = 0.0D;
+
+        for (final PartStep partStep : partSteps) {
+            final long p = Math.max(0L, partStep.getProbability());
+            if (p == 0L) continue;
+
+            final double phiRad = calcAngleRadFromEigentime(partStep.getEigentime());
+            final double ampMag = Math.sqrt(p / (double) PROBABILITY);
+            //final double ampMag = 1.0D / (double) PROBABILITY;
+
+            sumRe += ampMag * Math.cos(phiRad);
+            sumIm += ampMag * Math.sin(phiRad);
+        }
+
+        final double probNorm = (sumRe * sumRe) + (sumIm * sumIm);
+        final double probScaled = probNorm * PROBABILITY;
+
+        // Numerische Sicherheit: auf [0, PROBABILITY] clampen.
+        return clamp(probScaled, 0.0D, (double) PROBABILITY);
+    }
+
+    /**
+     * Wandelt die Eigentime in einen Winkel (in Radiant) um:
+     * eigentime % 4 → 0°, 60°, 120°, 180°.
+     */
+    private double calcAngleRadFromEigentime(final long eigentime) {
+        final int mod = Math.floorMod(eigentime, 4);
+        final double deg = mod * 60.0D; // 0, 60, 120, 180
+        return Math.toRadians(deg);
+    }
+
+    private static double clamp(final double v, final double min, final double max) {
+        return Math.max(min, Math.min(max, v));
+    }
 }
