@@ -1,12 +1,10 @@
 package de.schmiereck.hex2d.step2.service;
 
-import de.schmiereck.hex2d.math.NumService;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 
 /**
  * <pre><code>
@@ -53,8 +51,8 @@ import java.util.Optional;
 public class HexGridService {
     public static final long NEW_PARTS = 4;
 
-    //public static final int PROBABILITY = 1 * 2 * 3 * 5 * 7; // 30030
-    //public static final int PROBABILITY = 1 * 2 * 3 * 5 * 7 * 11 * 13; // 30030
+    //public static final long PROBABILITY = 2L * 3 * 5 * 7 * 11 * 13 * 17 * 19 * 23 * 29 * 31 * 37 * 41 * 43 * 47 * 53 * 59 * 61 * 67 * 71 * 73 * 79 * 83 * 89 * 97;
+    //public static final long PROBABILITY = 2L * 3 * 5 * 7 * 11 * 13 * 17 * 19 * 23 * 29 * 31 * 37 * 41 * 43 * 47;
     public static final long PROBABILITY =
             NEW_PARTS * NEW_PARTS * NEW_PARTS * NEW_PARTS *
             NEW_PARTS * NEW_PARTS * NEW_PARTS * NEW_PARTS *
@@ -101,7 +99,7 @@ public class HexGridService {
     };
 
     //public static final int DIMENSION = 4;
-    public static final long DIMENSION = 2;
+    public static final long EIGENTIME_MAX = 1024;
 
     //private NumService numService = new NumService(PROBABILITY);
 
@@ -111,7 +109,7 @@ public class HexGridService {
     private int stepCount = 0;
 
     public void initialize(final int sizeX, final int sizeY) {
-        final boolean[] useStepArr = { true, true, true };
+        final boolean[] useStepArr = { true, false, true };
 
         this.hexGrid = new HexGrid(sizeX, sizeY);
         if (useStepArr[0]) {
@@ -161,7 +159,7 @@ public class HexGridService {
 
     private void calcGrid() {
         // Populate probabilities:
-        System.out.printf("=========================================================%n");
+        //System.out.printf("=========================================================%n");
         for (int posY = 0; posY < this.hexGrid.getNodeCountY(); posY++) {
             for (int posX = 0; posX < this.hexGrid.getNodeCountX(); posX++) {
                 final GridNode sourceGridNode = this.hexGrid.getGridNode(posX, posY);
@@ -177,7 +175,7 @@ public class HexGridService {
 
                 final List<PartStep> partStepList = sourceGridNode.getPartStepList(this.getActCellArrPos());
                 if (!partStepList.isEmpty()) {
-                    System.out.printf("-------------------------------------------%n");
+                    //System.out.printf("-------------------------------------------%n");
                     partStepList.stream().forEach(sourcePartStep -> {
                         final long sourceProb = sourcePartStep.getProbability();
                         final long sourceOrt = sourcePartStep.getOrt();
@@ -233,12 +231,10 @@ public class HexGridService {
                                     }
                                 }
                                 if (Objects.nonNull(newLPartStep)) {
-                                    targetTimeLGridNode.addPartStep(this.getNextCellArrPos(), newLPartStep);
-                                    System.out.printf("newLPartStep: ort=%d, impulse=%d, prob=%d%n", newLPartStep.getOrt(), newLPartStep.getImpulse(), newLPartStep.getProbability());
+                                    addPartStepToGridNode(targetTimeLGridNode, newLPartStep, "newLPartStep");
                                 }
                                 if (Objects.nonNull(newRPartStep)) {
-                                    targetTimeRGridNode.addPartStep(this.getNextCellArrPos(), newRPartStep);
-                                    System.out.printf("newRPartStep: ort=%d, impulse=%d, prob=%d%n", newRPartStep.getOrt(), newRPartStep.getImpulse(), newRPartStep.getProbability());
+                                    addPartStepToGridNode(targetTimeRGridNode, newRPartStep, "newRPartStep");
                                 }
                             } else {
                                 if (sourceImpulse < 0) {
@@ -272,12 +268,10 @@ public class HexGridService {
                                     }
 
                                     if (Objects.nonNull(newLPartStep)) {
-                                        targetTimeLGridNode.addPartStep(this.getNextCellArrPos(), newLPartStep);
-                                        System.out.printf("newLPartStep: ort=%d, impulse=%d, prob=%d%n", newLPartStep.getOrt(), newLPartStep.getImpulse(), newLPartStep.getProbability());
+                                        addPartStepToGridNode(targetTimeLGridNode, newLPartStep, "newLPartStep");
                                     }
                                     if (Objects.nonNull(newRPartStep)) {
-                                        targetTimeRGridNode.addPartStep(this.getNextCellArrPos(), newRPartStep);
-                                        System.out.printf("newRPartStep: ort=%d, impulse=%d, prob=%d%n", newRPartStep.getOrt(), newRPartStep.getImpulse(), newRPartStep.getProbability());
+                                        addPartStepToGridNode(targetTimeRGridNode, newRPartStep, "newRPartStep");
                                     }
                                 } else {
                                     final PartStep newLPartStep =
@@ -287,12 +281,10 @@ public class HexGridService {
                                             new PartStep(sourcePartStep.getPartEvent(), newPosRProbability, sourcePartStep.getEigentime() + 1L,
                                                     sourceOrt, sourceImpulse);
                                     if (Objects.nonNull(newLPartStep)) {
-                                        targetTimeLGridNode.addPartStep(this.getNextCellArrPos(), newLPartStep);
-                                        System.out.printf("newLPartStep: ort=%d, impulse=%d, prob=%d%n", newLPartStep.getOrt(), newLPartStep.getImpulse(), newLPartStep.getProbability());
+                                        addPartStepToGridNode(targetTimeLGridNode, newLPartStep, "newLPartStep");
                                     }
                                     if (Objects.nonNull(newRPartStep)) {
-                                        targetTimeRGridNode.addPartStep(this.getNextCellArrPos(), newRPartStep);
-                                        System.out.printf("newRPartStep: ort=%d, impulse=%d, prob=%d%n", newRPartStep.getOrt(), newRPartStep.getImpulse(), newRPartStep.getProbability());
+                                        addPartStepToGridNode(targetTimeRGridNode, newRPartStep, "newRPartStep");
                                     }
                                 }
                             }
@@ -305,15 +297,13 @@ public class HexGridService {
                                 final PartStep newPartStep =
                                         new PartStep(sourcePartStep.getPartEvent(), leftProb, sourcePartStep.getEigentime(),
                                                 sourceOrt, sourceImpulse);
-                                sourceGridNode.addPartStep(this.getNextCellArrPos(), newPartStep);
-                                System.out.printf("newPartStep: ort=%d, impulse=%d, prob=%d%n", newPartStep.getOrt(), newPartStep.getImpulse(), newPartStep.getProbability());
+                                addPartStepToGridNode(sourceGridNode, newPartStep, "newPartStep");
                             }
                         } else {
                             final PartStep newPartStep =
                                     new PartStep(sourcePartStep.getPartEvent(), sourceProb, sourcePartStep.getEigentime(),
                                             sourceOrt, sourceImpulse);
-                            sourceGridNode.addPartStep(this.getNextCellArrPos(), newPartStep);
-                            System.out.printf("newPartStep: ort=%d, impulse=%d, prob=%d%n", newPartStep.getOrt(), newPartStep.getImpulse(), newPartStep.getProbability());
+                            addPartStepToGridNode(sourceGridNode, newPartStep, "newPartStep");
                         }
                     });
                     //partStepList.clear();
@@ -327,17 +317,14 @@ public class HexGridService {
 
                 final List<PartStep> partStepList = sourceGridNode.getPartStepList(this.getNextCellArrPos());
                 // Kompatible PartSteps zu einem PartStep mit summierter Probability zusammenfassen:
-                mergeCompatiblePartSteps(partStepList);
+                this.mergeCompatiblePartSteps(partStepList);
             }
         }
     }
 
-    private Cell.Dir incDir(final Cell.Dir dir) {
-        return Cell.Dir.values()[(dir.ordinal() + 1) % Cell.Dir.values().length];
-    }
-
-    private Cell.Dir addDir(final Cell.Dir aDir, final Cell.Dir bDir) {
-        return Cell.Dir.values()[(aDir.ordinal() + bDir.ordinal()) % Cell.Dir.values().length];
+    private void addPartStepToGridNode(final GridNode sourceGridNode, final PartStep newPartStep, final String partType) {
+        sourceGridNode.addPartStep(this.getNextCellArrPos(), newPartStep);
+        //System.out.printf("%s: ort=%d, impulse=%d, prob=%d%n", partType, newPartStep.getOrt(), newPartStep.getImpulse(), newPartStep.getProbability());
     }
 
     private GridNode getNeighbourGridNode(final int posX, final int posY, final Cell.Dir dir) {
@@ -346,16 +333,6 @@ public class HexGridService {
         final GridNode sourceGridNode =
                 this.hexGrid.getGridNode(posX + offsetArr[0], posY + offsetArr[1]);
         return sourceGridNode;
-    }
-
-    private Optional<PartStep> searchExistingPartStep(final GridNode gridNode, final PartStep sourcePartStep) {
-        return gridNode.getPartStepList(this.getNextCellArrPos()).stream().filter(partStep -> {
-                if (this.isCompatible(sourcePartStep, partStep))
-                    return true;
-                else
-                    return false;
-            }
-        ).findFirst();
     }
 
     // Fügt alle kompatiblen PartSteps einer Liste zu einem Eintrag mit der Gesamtsumme zusammen.
@@ -392,9 +369,6 @@ public class HexGridService {
     }
 
     private boolean isCompatible(final PartStep sourcePartStep, final PartStep partStep) {
-        // at the moment are all partSteps
-        // from the same Part-Event
-        // compatible (same dir probability)
         return (sourcePartStep.getPartEvent() == partStep.getPartEvent()) &&
                 (sourcePartStep.getEigentime() == partStep.getEigentime()) &&
                 (sourcePartStep.getOrt() == partStep.getOrt()) &&
@@ -473,8 +447,9 @@ public class HexGridService {
             if (p == 0L) continue;
 
             final double phiRad = calcAngleRadFromEigentime(partStep.getEigentime());
-            final double ampMag = Math.sqrt(p / (double) PROBABILITY);
             //final double ampMag = 1.0D / (double) PROBABILITY;
+            //final double ampMag = Math.sqrt(p / (double) PROBABILITY);
+            final double ampMag = 1.0D;
 
             sumRe += ampMag * Math.cos(phiRad);
             sumIm += ampMag * Math.sin(phiRad);
@@ -521,8 +496,8 @@ public class HexGridService {
     private static double calcAngleRadFromEigentime(final long eigentime) {
         //final int mod = Math.floorMod(eigentime, DIMENSION);
         //final double deg = mod * 60.0D; // 0, 60, 120, 180
-        final long mod = Math.floorMod(eigentime, DIMENSION * 2);
-        final double deg = mod * 45.0D; // 0, 45, 90, 135, 180
+        final long mod = Math.floorMod(eigentime, EIGENTIME_MAX);
+        final double deg = mod * (360.0D / EIGENTIME_MAX); // 0, 45, 90, 135, 180
         return Math.toRadians(deg);
     }
 
