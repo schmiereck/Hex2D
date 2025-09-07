@@ -1,0 +1,113 @@
+package de.schmiereck.hex2d.step2.service;
+
+public class PartStep {
+    private PartEvent partEvent;
+    //TODO Umstellen auf zwei Richtungen (L & R). Stillstehender Part bewegt sich nur in Zeit.
+    private long probability;
+    //private long addProbability = 0L;
+    //private long subProbability = 0L;
+    //private final int[] dirProbability = new int[Cell.Dir.values().length];
+    //private final int[] rotProbability = new int[Cell.Dir.values().length];
+    //private Cell.Dir nextDir;
+    //private Cell.Dir rotDir;
+    /**
+     * -100 to +100
+     */
+    private long dir;
+    private long eigentime;
+
+    private long ort;
+    private long impulse;
+
+    public PartStep(final PartEvent partEvent, final long probability, final long eigentime,
+                    final long ort, final long impulse) {
+        this.partEvent = partEvent;
+        this.probability = probability;
+        this.eigentime = eigentime;
+        this.ort = ort;
+        this.impulse = impulse;
+        //np this.nextDir = Cell.Dir.NP;
+        //this.nextDir = Cell.Dir.AP;
+        //this.rotDir = Cell.Dir.AP;
+    }
+
+    public PartEvent getPartEvent() {
+        return this.partEvent;
+    }
+
+    public long getProbability() {
+        return this.probability;
+    }
+
+    public long getEigentime() {
+        return this.eigentime;
+    }
+
+    public long getOrt() {
+        return this.ort;
+    }
+
+    public long getImpulse() {
+        return this.impulse;
+    }
+
+    public void addProbability(final long probability) {
+        this.probability += probability;
+    }
+
+    //public long getSubProbability() {
+    //    return this.subProbability;
+    //}
+//
+    //public void setSubProbability(final long subProbability) {
+    //    this.subProbability = subProbability;
+    //}
+//
+    //public void addSubProbability(final long subProbability) {
+    //    this.subProbability += subProbability;
+    //}
+//
+    //public void setProb(final Cell.Dir dir, final int probability) {
+    //    this.dirProbability[dir.ordinal()] = probability;
+    //}
+//
+    //public int getProb(final Cell.Dir dir) {
+    //    return this.dirProbability[dir.ordinal()];
+    //}
+//
+    //public void setRot(final Cell.Dir dir, final int rotProbability) {
+    //    this.rotProbability[dir.ordinal()] = rotProbability;
+    //}
+//
+    //public int getRot(final Cell.Dir dir) {
+    //    return this.rotProbability[dir.ordinal()];
+    //}
+//
+    //public Cell.Dir getNextDir() {
+    //    return this.nextDir;
+    //}
+//
+    //public void setNextDir(final Cell.Dir nextDir) {
+    //    this.nextDir = nextDir;
+    //}
+//
+    //public Cell.Dir getRotDir() {
+    //    return this.rotDir;
+    //}
+//
+    //public void setRotDir(final Cell.Dir rotDir) {
+    //    this.rotDir = rotDir;
+    //}
+//
+    //public long getAddProbability() {
+    //    return this.addProbability;
+    //}
+//
+    //public void setAddProbability(final long addProbability) {
+    //    this.addProbability = addProbability;
+    //}
+//
+    //public void addAddProbability(final long addProbability) {
+    //    this.addProbability += addProbability;
+    //}
+}
