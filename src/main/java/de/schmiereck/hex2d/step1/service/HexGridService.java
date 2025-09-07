@@ -94,6 +94,9 @@ public class HexGridService {
             }
     };
 
+    //public static final int DIMENSION = 4;
+    public static final int DIMENSION = 2;
+
     private NumService numService = new NumService(PROBABILITY);
 
     private HexGrid hexGrid;
@@ -179,26 +182,26 @@ public class HexGridService {
                 sourceGridNode.getPartStepList(this.getActCellArrPos()).stream().forEach(sourcePartStep -> {
                     final long sourceDirProb = sourcePartStep.getProbability();
 
-                    if (sourceDirProb >= 4) {
+                    if (sourceDirProb >= DIMENSION) {
                         //final long newProbability = (sourcePartStep.getProbability() * sourceDirProb) / PROBABILITY;
-                        final long newProbability = sourceDirProb / 4;
+                        final long newProbability = sourceDirProb / DIMENSION;
                         final long newTimeLProbability = newProbability;// / 2;
                         final long newTimeRProbability = newProbability;// - newLProbability;
-                        final long newSpaceLProbability = newProbability;// / 2;
-                        final long newSpaceRProbability = newProbability;// - newLProbability;
+                        //final long newSpaceLProbability = newProbability;// / 2;
+                        //final long newSpaceRProbability = newProbability;// - newLProbability;
 
                         final PartStep newTimeLPartStep = new PartStep(sourcePartStep.getPartEvent(), newTimeLProbability, sourcePartStep.getEigentime() + 1L);
                         final PartStep newTimeRPartStep = new PartStep(sourcePartStep.getPartEvent(), newTimeRProbability, sourcePartStep.getEigentime() + 1L);
-                        final PartStep newSpaceLPartStep = new PartStep(sourcePartStep.getPartEvent(), newSpaceLProbability, sourcePartStep.getEigentime());
-                        final PartStep newSpaceRPartStep = new PartStep(sourcePartStep.getPartEvent(), newSpaceRProbability, sourcePartStep.getEigentime());
+                        //final PartStep newSpaceLPartStep = new PartStep(sourcePartStep.getPartEvent(), newSpaceLProbability, sourcePartStep.getEigentime());
+                        //final PartStep newSpaceRPartStep = new PartStep(sourcePartStep.getPartEvent(), newSpaceRProbability, sourcePartStep.getEigentime());
 
                         targetTimeLGridNode.addPartStep(this.getNextCellArrPos(), newTimeLPartStep);
                         targetTimeRGridNode.addPartStep(this.getNextCellArrPos(), newTimeRPartStep);
-                        targetSpaceLGridNode.addPartStep(this.getNextCellArrPos(), newSpaceLPartStep);
-                        targetSpaceRGridNode.addPartStep(this.getNextCellArrPos(), newSpaceRPartStep);
+                        //targetSpaceLGridNode.addPartStep(this.getNextCellArrPos(), newSpaceLPartStep);
+                        //targetSpaceRGridNode.addPartStep(this.getNextCellArrPos(), newSpaceRPartStep);
 
                         final long leftProb = sourceDirProb -
-                                (newTimeLProbability + newTimeRProbability + newSpaceLProbability + newSpaceRProbability);
+                                (newTimeLProbability + newTimeRProbability);// + newSpaceLProbability + newSpaceRProbability);
 
                         if (leftProb > 0) {
                             final PartStep newPartStep = new PartStep(sourcePartStep.getPartEvent(), leftProb, sourcePartStep.getEigentime());
@@ -397,9 +400,11 @@ public class HexGridService {
      * Wandelt die Eigentime in einen Winkel (in Radiant) um:
      * eigentime % 4 → 0°, 60°, 120°, 180°.
      */
-    private double calcAngleRadFromEigentime(final long eigentime) {
-        final int mod = Math.floorMod(eigentime, 4);
-        final double deg = mod * 60.0D; // 0, 60, 120, 180
+    private static double calcAngleRadFromEigentime(final long eigentime) {
+        //final int mod = Math.floorMod(eigentime, DIMENSION);
+        //final double deg = mod * 60.0D; // 0, 60, 120, 180
+        final int mod = Math.floorMod(eigentime, DIMENSION * 2);
+        final double deg = mod * 45.0D; // 0, 45, 90, 135, 180
         return Math.toRadians(deg);
     }
 
