@@ -5,6 +5,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -50,28 +51,33 @@ import java.util.Optional;
  */
 @Component
 public class HexGridService {
+    public static final long NEW_PARTS = 4;
 
     //public static final int PROBABILITY = 1 * 2 * 3 * 5 * 7; // 30030
     //public static final int PROBABILITY = 1 * 2 * 3 * 5 * 7 * 11 * 13; // 30030
-    public static final int PROBABILITY = 4 * 4 * 4 * 4 * 4 * 4 * 4 * 4 * 4; //
-    public static final int PROBABILITY_0 = 0;
-    public static final int PROBABILITY_1_1 = PROBABILITY;
-    public static final int PROBABILITY_1_2 = PROBABILITY / 2;
-    public static final int PROBABILITY_1_3 = PROBABILITY / 3;
-    public static final int PROBABILITY_2_3 = PROBABILITY_1_3 * 2;
-    public static final int PROBABILITY_1_4 = PROBABILITY / 4;
-    public static final int PROBABILITY_2_4 = PROBABILITY_1_4 * 2;
-    public static final int PROBABILITY_3_4 = PROBABILITY_1_4 * 3;
-    public static final int PROBABILITY_1_8 = PROBABILITY / 8;
-    public static final int PROBABILITY_2_8 = PROBABILITY_1_8 * 2;
-    public static final int PROBABILITY_3_8 = PROBABILITY_1_8 * 3;
-    public static final int PROBABILITY_1_10 = PROBABILITY / 10;
-    public static final int PROBABILITY_4_10 = PROBABILITY_1_10 * 4;
-    public static final int PROBABILITY_6_10 = PROBABILITY_1_10 * 6;
-    public static final int PROBABILITY_9_10 = PROBABILITY_1_10 * 9;
+    public static final long PROBABILITY =
+            NEW_PARTS * NEW_PARTS * NEW_PARTS * NEW_PARTS *
+            NEW_PARTS * NEW_PARTS * NEW_PARTS * NEW_PARTS *
+            NEW_PARTS * NEW_PARTS * NEW_PARTS * NEW_PARTS *
+            NEW_PARTS * NEW_PARTS * NEW_PARTS * NEW_PARTS; //
+    public static final long PROBABILITY_0 = 0;
+    public static final long PROBABILITY_1_1 = PROBABILITY;
+    public static final long PROBABILITY_1_2 = PROBABILITY / 2;
+    public static final long PROBABILITY_1_3 = PROBABILITY / 3;
+    public static final long PROBABILITY_2_3 = PROBABILITY_1_3 * 2;
+    public static final long PROBABILITY_1_4 = PROBABILITY / 4;
+    public static final long PROBABILITY_2_4 = PROBABILITY_1_4 * 2;
+    public static final long PROBABILITY_3_4 = PROBABILITY_1_4 * 3;
+    public static final long PROBABILITY_1_8 = PROBABILITY / 8;
+    public static final long PROBABILITY_2_8 = PROBABILITY_1_8 * 2;
+    public static final long PROBABILITY_3_8 = PROBABILITY_1_8 * 3;
+    public static final long PROBABILITY_1_10 = PROBABILITY / 10;
+    public static final long PROBABILITY_4_10 = PROBABILITY_1_10 * 4;
+    public static final long PROBABILITY_6_10 = PROBABILITY_1_10 * 6;
+    public static final long PROBABILITY_9_10 = PROBABILITY_1_10 * 9;
 
-    public static final int POSITION = 2 * 2 * 2; //
-    public static final int IMPULSE = 2 * 2; //
+    public static final long POSITION = 2 * 2 * 2; //
+    public static final long IMPULSE = 2 * 2; //
 
     private static final int[][][] DirOffsetArr = {
             {
@@ -95,10 +101,9 @@ public class HexGridService {
     };
 
     //public static final int DIMENSION = 4;
-    public static final int DIMENSION = 2;
-    public static final int NEW_PARTS = 4;
+    public static final long DIMENSION = 2;
 
-    private NumService numService = new NumService(PROBABILITY);
+    //private NumService numService = new NumService(PROBABILITY);
 
     private HexGrid hexGrid;
 
@@ -106,7 +111,7 @@ public class HexGridService {
     private int stepCount = 0;
 
     public void initialize(final int sizeX, final int sizeY) {
-        final boolean[] useStepArr = { true, false, false };
+        final boolean[] useStepArr = { true, true, true };
 
         this.hexGrid = new HexGrid(sizeX, sizeY);
         if (useStepArr[0]) {
@@ -156,6 +161,7 @@ public class HexGridService {
 
     private void calcGrid() {
         // Populate probabilities:
+        System.out.printf("=========================================================%n");
         for (int posY = 0; posY < this.hexGrid.getNodeCountY(); posY++) {
             for (int posX = 0; posX < this.hexGrid.getNodeCountX(); posX++) {
                 final GridNode sourceGridNode = this.hexGrid.getGridNode(posX, posY);
@@ -169,85 +175,149 @@ public class HexGridService {
                 final GridNode targetSpaceLGridNode = this.getNeighbourGridNode(posX, posY, Cell.Dir.AN);
                 final GridNode targetSpaceRGridNode = this.getNeighbourGridNode(posX, posY, Cell.Dir.AP);
 
-                sourceGridNode.getPartStepList(this.getActCellArrPos()).stream().forEach(sourcePartStep -> {
-                    final long sourceProb = sourcePartStep.getProbability();
-                    final long sourceOrt = sourcePartStep.getOrt();
-                    final long sourceImpulse = sourcePartStep.getImpulse();
+                final List<PartStep> partStepList = sourceGridNode.getPartStepList(this.getActCellArrPos());
+                if (!partStepList.isEmpty()) {
+                    System.out.printf("-------------------------------------------%n");
+                    partStepList.stream().forEach(sourcePartStep -> {
+                        final long sourceProb = sourcePartStep.getProbability();
+                        final long sourceOrt = sourcePartStep.getOrt();
+                        final long sourceImpulse = sourcePartStep.getImpulse();
 
-                    if (sourceProb >= NEW_PARTS) {
-                        //final long newProbability = (sourcePartStep.getProbability() * sourceProb) / PROBABILITY;
-                        final long newProbability = sourceProb / NEW_PARTS;
-                        final long newTimeLProbability = newProbability;// / 2;
-                        final long newTimeRProbability = newProbability;// - newLProbability;
-                        final long newPosLProbability = newProbability;// - newLProbability;
-                        final long newPosRProbability = newProbability;// - newLProbability;
-                        //final long newSpaceLProbability = newProbability;// / 2;
-                        //final long newSpaceRProbability = newProbability;// - newLProbability;
+                        if (sourceProb >= NEW_PARTS) {
+                            //final long newProbability = (sourcePartStep.getProbability() * sourceProb) / PROBABILITY;
+                            final long newProbability = sourceProb / NEW_PARTS;
+                            final long newTimeLProbability = newProbability;// / 2;
+                            final long newTimeRProbability = newProbability;// - newLProbability;
+                            final long newPosLProbability = newProbability;// - newLProbability;
+                            final long newPosRProbability = newProbability;// - newLProbability;
 
-                        final PartStep newTimeLPartStep =
-                                new PartStep(sourcePartStep.getPartEvent(), newTimeLProbability, sourcePartStep.getEigentime(),
-                                        0L, sourceImpulse);
-                        final PartStep newTimeRPartStep =
-                                new PartStep(sourcePartStep.getPartEvent(), newTimeRProbability, sourcePartStep.getEigentime(),
-                                        0L, sourceImpulse);
-                        //final PartStep newSpaceLPartStep = new PartStep(sourcePartStep.getPartEvent(), newSpaceLProbability, sourcePartStep.getEigentime());
-                        //final PartStep newSpaceRPartStep = new PartStep(sourcePartStep.getPartEvent(), newSpaceRProbability, sourcePartStep.getEigentime());
+                            final PartStep newTimeLPartStep =
+                                    new PartStep(sourcePartStep.getPartEvent(), newTimeLProbability, sourcePartStep.getEigentime(),
+                                            0L, sourceImpulse);
+                            final PartStep newTimeRPartStep =
+                                    new PartStep(sourcePartStep.getPartEvent(), newTimeRProbability, sourcePartStep.getEigentime(),
+                                            0L, sourceImpulse);
 
-                        targetTimeLGridNode.addPartStep(this.getNextCellArrPos(), newTimeLPartStep);
-                        targetTimeRGridNode.addPartStep(this.getNextCellArrPos(), newTimeRPartStep);
-                        //targetSpaceLGridNode.addPartStep(this.getNextCellArrPos(), newSpaceLPartStep);
-                        //targetSpaceRGridNode.addPartStep(this.getNextCellArrPos(), newSpaceRPartStep);
+                            targetTimeLGridNode.addPartStep(this.getNextCellArrPos(), newTimeLPartStep);
+                            targetTimeRGridNode.addPartStep(this.getNextCellArrPos(), newTimeRPartStep);
 
-                        if (sourceImpulse > 0) {
-                            final PartStep newLPartStep =
-                                    new PartStep(sourcePartStep.getPartEvent(), newPosLProbability, sourcePartStep.getEigentime() + 1L,
-                                            ((POSITION / 2) + sourceOrt), sourceImpulse);
-                            final PartStep newRPartStep =
-                                    new PartStep(sourcePartStep.getPartEvent(), newPosRProbability, sourcePartStep.getEigentime() + 1L,
-                                            -((POSITION / 2) - sourceOrt), sourceImpulse);
-                            targetTimeLGridNode.addPartStep(this.getNextCellArrPos(), newLPartStep);
-                            targetTimeRGridNode.addPartStep(this.getNextCellArrPos(), newRPartStep);
-                        } else {
-                            if (sourceImpulse < 0) {
-                                final PartStep newLPartStep =
-                                        new PartStep(sourcePartStep.getPartEvent(), newPosLProbability, sourcePartStep.getEigentime() + 1L,
-                                                ((POSITION / 2) - sourceOrt), sourceImpulse);
-                                final PartStep newRPartStep =
-                                        new PartStep(sourcePartStep.getPartEvent(), newPosRProbability, sourcePartStep.getEigentime() + 1L,
-                                                -((POSITION / 2) + sourceOrt), sourceImpulse);
-                                targetTimeLGridNode.addPartStep(this.getNextCellArrPos(), newLPartStep);
-                                targetTimeRGridNode.addPartStep(this.getNextCellArrPos(), newRPartStep);
+                            if (sourceImpulse > 0) {
+                                final PartStep newLPartStep;
+                                final PartStep newRPartStep;
+
+                                final long newLPartPos = ((POSITION / 2) + sourceOrt) + sourceImpulse;
+                                final long newRPartPos = -((POSITION / 2) - sourceOrt) + sourceImpulse;
+
+                                if (newRPartPos <= -POSITION) {
+                                    newLPartStep =
+                                            new PartStep(sourcePartStep.getPartEvent(),
+                                                    newPosLProbability + newPosRProbability, sourcePartStep.getEigentime() + 1L,
+                                                    newLPartPos, sourceImpulse);
+                                    newRPartStep = null;
+                                } else {
+                                    if (newLPartPos >= POSITION) {
+                                        newLPartStep = null;
+                                        newRPartStep =
+                                                new PartStep(sourcePartStep.getPartEvent(),
+                                                        newPosLProbability + newPosRProbability, sourcePartStep.getEigentime() + 1L,
+                                                        newRPartPos, sourceImpulse);
+                                    } else {
+                                        newLPartStep =
+                                                new PartStep(sourcePartStep.getPartEvent(),
+                                                        newPosLProbability, sourcePartStep.getEigentime() + 1L,
+                                                        newLPartPos, sourceImpulse);
+                                        newRPartStep =
+                                                new PartStep(sourcePartStep.getPartEvent(),
+                                                        newPosRProbability, sourcePartStep.getEigentime() + 1L,
+                                                        newRPartPos, sourceImpulse);
+                                    }
+                                }
+                                if (Objects.nonNull(newLPartStep)) {
+                                    targetTimeLGridNode.addPartStep(this.getNextCellArrPos(), newLPartStep);
+                                    System.out.printf("newLPartStep: ort=%d, impulse=%d, prob=%d%n", newLPartStep.getOrt(), newLPartStep.getImpulse(), newLPartStep.getProbability());
+                                }
+                                if (Objects.nonNull(newRPartStep)) {
+                                    targetTimeRGridNode.addPartStep(this.getNextCellArrPos(), newRPartStep);
+                                    System.out.printf("newRPartStep: ort=%d, impulse=%d, prob=%d%n", newRPartStep.getOrt(), newRPartStep.getImpulse(), newRPartStep.getProbability());
+                                }
                             } else {
-                                final PartStep newLPartStep =
-                                        new PartStep(sourcePartStep.getPartEvent(), newPosLProbability, sourcePartStep.getEigentime() + 1L,
-                                                sourceOrt, sourceImpulse);
-                                final PartStep newRPartStep =
-                                        new PartStep(sourcePartStep.getPartEvent(), newPosRProbability, sourcePartStep.getEigentime() + 1L,
-                                                sourceOrt, sourceImpulse);
-                                targetTimeLGridNode.addPartStep(this.getNextCellArrPos(), newLPartStep);
-                                targetTimeRGridNode.addPartStep(this.getNextCellArrPos(), newRPartStep);
+                                if (sourceImpulse < 0) {
+                                    final PartStep newLPartStep;
+                                    final PartStep newRPartStep;
+
+                                    final long newLPartPos = ((POSITION / 2) + sourceOrt) + sourceImpulse;
+                                    final long newRPartPos = -((POSITION / 2) - sourceOrt) + sourceImpulse;
+
+                                    if (newLPartPos >= POSITION) {
+                                        newLPartStep = null;
+                                        newRPartStep =
+                                                new PartStep(sourcePartStep.getPartEvent(),
+                                                        newPosLProbability + newPosRProbability, sourcePartStep.getEigentime() + 1L,
+                                                        newRPartPos, sourceImpulse);
+                                    } else {
+                                        if (newRPartPos <= -POSITION) {
+                                            newLPartStep =
+                                                    new PartStep(sourcePartStep.getPartEvent(),
+                                                            newPosLProbability + newPosRProbability, sourcePartStep.getEigentime() + 1L,
+                                                            newLPartPos, sourceImpulse);
+                                            newRPartStep = null;
+                                        } else {
+                                            newLPartStep =
+                                                    new PartStep(sourcePartStep.getPartEvent(), newPosLProbability, sourcePartStep.getEigentime() + 1L,
+                                                            newLPartPos, sourceImpulse);
+                                            newRPartStep =
+                                                    new PartStep(sourcePartStep.getPartEvent(), newPosRProbability, sourcePartStep.getEigentime() + 1L,
+                                                            newRPartPos, sourceImpulse);
+                                        }
+                                    }
+
+                                    if (Objects.nonNull(newLPartStep)) {
+                                        targetTimeLGridNode.addPartStep(this.getNextCellArrPos(), newLPartStep);
+                                        System.out.printf("newLPartStep: ort=%d, impulse=%d, prob=%d%n", newLPartStep.getOrt(), newLPartStep.getImpulse(), newLPartStep.getProbability());
+                                    }
+                                    if (Objects.nonNull(newRPartStep)) {
+                                        targetTimeRGridNode.addPartStep(this.getNextCellArrPos(), newRPartStep);
+                                        System.out.printf("newRPartStep: ort=%d, impulse=%d, prob=%d%n", newRPartStep.getOrt(), newRPartStep.getImpulse(), newRPartStep.getProbability());
+                                    }
+                                } else {
+                                    final PartStep newLPartStep =
+                                            new PartStep(sourcePartStep.getPartEvent(), newPosLProbability, sourcePartStep.getEigentime() + 1L,
+                                                    sourceOrt, sourceImpulse);
+                                    final PartStep newRPartStep =
+                                            new PartStep(sourcePartStep.getPartEvent(), newPosRProbability, sourcePartStep.getEigentime() + 1L,
+                                                    sourceOrt, sourceImpulse);
+                                    if (Objects.nonNull(newLPartStep)) {
+                                        targetTimeLGridNode.addPartStep(this.getNextCellArrPos(), newLPartStep);
+                                        System.out.printf("newLPartStep: ort=%d, impulse=%d, prob=%d%n", newLPartStep.getOrt(), newLPartStep.getImpulse(), newLPartStep.getProbability());
+                                    }
+                                    if (Objects.nonNull(newRPartStep)) {
+                                        targetTimeRGridNode.addPartStep(this.getNextCellArrPos(), newRPartStep);
+                                        System.out.printf("newRPartStep: ort=%d, impulse=%d, prob=%d%n", newRPartStep.getOrt(), newRPartStep.getImpulse(), newRPartStep.getProbability());
+                                    }
+                                }
                             }
-                        }
 
-                        final long leftProb = sourceProb -
-                                (newTimeLProbability + newTimeRProbability +
-                                        newPosLProbability + newPosRProbability);
-                        // + newSpaceLProbability + newSpaceRProbability);
+                            final long leftProb = sourceProb -
+                                    (newTimeLProbability + newTimeRProbability +
+                                            newPosLProbability + newPosRProbability);
 
-                        if (leftProb > 0) {
+                            if (leftProb > 0) {
+                                final PartStep newPartStep =
+                                        new PartStep(sourcePartStep.getPartEvent(), leftProb, sourcePartStep.getEigentime(),
+                                                sourceOrt, sourceImpulse);
+                                sourceGridNode.addPartStep(this.getNextCellArrPos(), newPartStep);
+                                System.out.printf("newPartStep: ort=%d, impulse=%d, prob=%d%n", newPartStep.getOrt(), newPartStep.getImpulse(), newPartStep.getProbability());
+                            }
+                        } else {
                             final PartStep newPartStep =
-                                    new PartStep(sourcePartStep.getPartEvent(), leftProb, sourcePartStep.getEigentime(),
+                                    new PartStep(sourcePartStep.getPartEvent(), sourceProb, sourcePartStep.getEigentime(),
                                             sourceOrt, sourceImpulse);
                             sourceGridNode.addPartStep(this.getNextCellArrPos(), newPartStep);
+                            System.out.printf("newPartStep: ort=%d, impulse=%d, prob=%d%n", newPartStep.getOrt(), newPartStep.getImpulse(), newPartStep.getProbability());
                         }
-                    } else {
-                        final PartStep newPartStep =
-                                new PartStep(sourcePartStep.getPartEvent(), sourceProb, sourcePartStep.getEigentime(),
-                                        sourceOrt, sourceImpulse);
-                        sourceGridNode.addPartStep(this.getNextCellArrPos(), newPartStep);
-                    }
-                });
-                //sourceGridNode.getPartStepList(this.getActCellArrPos()).clear();
+                    });
+                    //partStepList.clear();
+                }
             }
         }
         // Interactions probabilities:
@@ -451,7 +521,7 @@ public class HexGridService {
     private static double calcAngleRadFromEigentime(final long eigentime) {
         //final int mod = Math.floorMod(eigentime, DIMENSION);
         //final double deg = mod * 60.0D; // 0, 60, 120, 180
-        final int mod = Math.floorMod(eigentime, DIMENSION * 2);
+        final long mod = Math.floorMod(eigentime, DIMENSION * 2);
         final double deg = mod * 45.0D; // 0, 45, 90, 135, 180
         return Math.toRadians(deg);
     }
