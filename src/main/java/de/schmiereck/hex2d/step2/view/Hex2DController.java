@@ -150,7 +150,8 @@ public class Hex2DController implements Initializable
 
                     // Eigentime-Linien zeichnen (eine Kette pro PartStep)
                     final List<PartStep> partSteps = this.hexGridService.retrieveActPartSteps(posX, posY);
-                    this.drawEigentimeChains(gridCellModel, partSteps, radius);
+                    // TODO Filer for different PartEvents, ...
+                    this.drawEigentimeChains(gridCellModel, partSteps);
                 } else {
                     gridNodeCircle.setRadius(minRadius);
                     gridNodeCircle.setFill(Color.DARKGRAY);
@@ -159,8 +160,7 @@ public class Hex2DController implements Initializable
         }
     }
 
-    private void drawEigentimeChains(final GridCellModel gridCellModel, final List<PartStep> partStepList,
-                                     final double baseRadius) {
+    private void drawEigentimeChains(final GridCellModel gridCellModel, final List<PartStep> partStepList) {
         if (partStepList == null || partStepList.isEmpty()) return;
 
         final double centerX = gridCellModel.getScreenPosX();
@@ -170,7 +170,7 @@ public class Hex2DController implements Initializable
 
         double x0 = centerX;
         double y0 = centerY;
-        double currentAngle0 = 0.0D;
+        double currentAngle0 = 90.0D;
 
         for (final PartStep partStep : partStepList) {
             if (partStep.getProbability() <= 64 * 4 * 4) continue; // zu kleine Wahrscheinlichkeit
@@ -186,7 +186,8 @@ public class Hex2DController implements Initializable
             // Rotationsinkrement: kleiner Zusatzwinkel für Kettenoptik
             //final double deltaAngle = Math.toRadians(12.0D); // 12° je Segment
 
-            final double currentAngle1 = currentAngle0 + angleRad;
+            //final double currentAngle1 = currentAngle0 + angleRad;
+            final double currentAngle1 = angleRad;
 
             final double x1 = x0 + (Math.cos(currentAngle1) * segmentLen);
             final double y1 = y0 + (Math.sin(currentAngle1) * segmentLen);
@@ -194,7 +195,7 @@ public class Hex2DController implements Initializable
             final Line line = new Line(x0, y0, x1, y1);
             line.setStrokeWidth(1.0D);
             line.setStroke(calcStrokeColor(partStep));
-            line.setOpacity(0.85D);
+            line.setOpacity(0.65D);
 
             // Linien nach den Kreisen zeichnen -> oben liegend
             this.mainPane.getChildren().add(line);
@@ -220,14 +221,12 @@ public class Hex2DController implements Initializable
                                     final double minR, final double maxR) {
         if ((value <= 0.0D) || (minProb <= 0.0D) || (maxProb <= 0.0D)) return minR;
 
-        final double lv = (value);
-        final double lmax = (maxProb);
-
-        double t = (lv) / (lmax);
+        double t = ((value)) / ((maxProb));
         if (t < 0.0D) t = 0.0D;
         if (t > 1.0D) t = 1.0D;
 
         return minR + (t * (maxR - minR));
+        //return t * maxR;
     }
 
     // Neue Hilfsmethode: Logarithmische Skalierung in [minR, maxR]
