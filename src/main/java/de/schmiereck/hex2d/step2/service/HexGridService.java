@@ -50,7 +50,8 @@ import java.util.Collections; // added
  */
 @Component
 public class HexGridService {
-    public static final long NEW_PARTS = 4;
+    public static final boolean UseTimeDistribution = false;;
+    public static final long NEW_PARTS = UseTimeDistribution ? 4 : 2;
 
     //public static final long PROBABILITY = 2L * 3 * 5 * 7 * 11 * 13 * 17 * 19 * 23 * 29 * 31 * 37 * 41 * 43 * 47 * 53 * 59 * 61 * 67 * 71 * 73 * 79 * 83 * 89 * 97;
     //public static final long PROBABILITY = 2L * 3 * 5 * 7 * 11 * 13 * 17 * 19 * 23 * 29 * 31 * 37 * 41 * 43 * 47;
@@ -101,7 +102,8 @@ public class HexGridService {
 
     //public static final int DIMENSION = 4;
     //public static final long EIGENTIME_MAX = 1024;
-    public static final long EIGENTIME_MAX = 6 * 6; //
+    //public static final long EIGENTIME_MAX = 6 * 6; //
+    public static final long EIGENTIME_MAX = 6; //
 
     //private NumService numService = new NumService(PROBABILITY);
 
@@ -187,22 +189,25 @@ public class HexGridService {
                         if (sourceProb >= NEW_PARTS) {
                             //final long newProbability = (sourcePartStep.getProbability() * sourceProb) / PROBABILITY;
                             final long newProbability = sourceProb / NEW_PARTS;
-                            final long newTimeLProbability = newProbability;// / 2;
-                            final long newTimeRProbability = newProbability;// - newLProbability;
-                            final long newPosLProbability = newProbability;// - newLProbability;
-                            final long newPosRProbability = newProbability;// - newLProbability;
+                            final long newTimeLProbability = newProbability;
+                            final long newTimeRProbability = newProbability;
+                            final long newPosLProbability = newProbability;
+                            final long newPosRProbability = newProbability;
                             final long newEigentime = sourceEigentime;
                             final long newPosEigentime = (sourceEigentime + 1L) % EIGENTIME_MAX;
+                            final long newPosEigentime2 = (sourceEigentime + 2L) % EIGENTIME_MAX;
 
-                            final PartStep newTimeLPartStep =
-                                    new PartStep(sourcePartStep.getPartEvent(), newTimeLProbability, newEigentime,
-                                            0L, sourceImpulse);
-                            final PartStep newTimeRPartStep =
-                                    new PartStep(sourcePartStep.getPartEvent(), newTimeRProbability, newEigentime,
-                                            0L, sourceImpulse);
+                            if (UseTimeDistribution) {
+                                final PartStep newTimeLPartStep =
+                                        new PartStep(sourcePartStep.getPartEvent(), newTimeLProbability, newEigentime,
+                                                0L, sourceImpulse);
+                                final PartStep newTimeRPartStep =
+                                        new PartStep(sourcePartStep.getPartEvent(), newTimeRProbability, newEigentime,
+                                                0L, sourceImpulse);
 
-                            targetTimeLGridNode.addPartStep(this.getNextCellArrPos(), newTimeLPartStep);
-                            targetTimeRGridNode.addPartStep(this.getNextCellArrPos(), newTimeRPartStep);
+                                targetTimeLGridNode.addPartStep(this.getNextCellArrPos(), newTimeLPartStep);
+                                targetTimeRGridNode.addPartStep(this.getNextCellArrPos(), newTimeRPartStep);
+                            }
 
                             if (sourceImpulse > 0) {
                                 final PartStep newLPartStep;
@@ -295,8 +300,11 @@ public class HexGridService {
                             }
 
                             final long leftProb = sourceProb -
-                                    (newTimeLProbability + newTimeRProbability +
-                                            newPosLProbability + newPosRProbability);
+                                    (
+                                            UseTimeDistribution ?
+                                                    (newTimeLProbability + newTimeRProbability) : 0L +
+                                            newPosLProbability + newPosRProbability
+                                    );
 
                             if (leftProb > 0) {
                                 final PartStep newPartStep =
