@@ -5,6 +5,7 @@ import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Collections; // added
 
 /**
  * <pre><code>
@@ -405,6 +406,15 @@ public class HexGridService {
     }
 
     /**
+     * Gibt eine unveränderliche Liste der aktuellen PartSteps eines Nodes zurück.
+     */
+    public List<PartStep> retrieveActPartSteps(final int posX, final int posY) {
+        final GridNode gridNode = this.hexGrid.getGridNode(posX, posY);
+        final List<PartStep> list = gridNode.getPartStepList(this.getActCellArrPos());
+        return Collections.unmodifiableList(list);
+    }
+
+    /**
      * @return the Probability between <code>0.0D</code> and {@link HexGridService#PROBABILITY}.
      */
     public double retrieveActGridNodeProbability(final int posX, final int posY) {
@@ -490,14 +500,11 @@ public class HexGridService {
     }
 
     /**
-     * Wandelt die Eigentime in einen Winkel (in Radiant) um:
-     * eigentime % 4 → 0°, 60°, 120°, 180°.
+     * Öffentliche Hilfsmethode für Darstellung: wandelt Eigentime in Radiant-Winkel.
      */
-    private static double calcAngleRadFromEigentime(final long eigentime) {
-        //final int mod = Math.floorMod(eigentime, DIMENSION);
-        //final double deg = mod * 60.0D; // 0, 60, 120, 180
+    public static double calcAngleRadFromEigentime(final long eigentime) {
         final long mod = Math.floorMod(eigentime, EIGENTIME_MAX);
-        final double deg = mod * (360.0D / EIGENTIME_MAX); // 0, 45, 90, 135, 180
+        final double deg = mod * (360.0D / EIGENTIME_MAX);
         return Math.toRadians(deg);
     }
 

@@ -2,6 +2,7 @@ package de.schmiereck.hex2d.step2.view;
 
 import de.schmiereck.hex2d.step2.service.HexGrid;
 import de.schmiereck.hex2d.step2.service.HexGridService;
+import de.schmiereck.hex2d.step2.service.PartStep;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Label;
@@ -9,10 +10,12 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
+import javafx.scene.shape.Line;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.net.URL;
+import java.util.List;
 import java.util.ResourceBundle;
 
 @Component
@@ -122,7 +125,18 @@ public class Hex2DController implements Initializable
         final double minRadius = 0.5D;
         final double maxRadius = Math.max(minRadius, this.StepX * 0.45D);
 
-        // 2. Durchlauf: logarithmisch skalierte Darstellung
+        // Vorhandene Eigentime-Linien entfernen
+        for (int posY = 0; posY < this.gridModel.getNodeCountY(); posY++) {
+            for (int posX = 0; posX < this.gridModel.getNodeCountX(); posX++) {
+                final GridCellModel gridCellModel = this.gridModel.getGridCellModel(posX, posY);
+                if (!gridCellModel.getEigentimeLineList().isEmpty()) {
+                    this.mainPane.getChildren().removeAll(gridCellModel.getEigentimeLineList());
+                    gridCellModel.clearEigentimeLines();
+                }
+            }
+        }
+
+        // 2. Durchlauf: Darstellung Wahrscheinlichkeiten + Eigentime-Linienketten
         for (int posY = 0; posY < this.gridModel.getNodeCountY(); posY++) {
             for (int posX = 0; posX < this.gridModel.getNodeCountX(); posX++) {
                 final GridCellModel gridCellModel = this.gridModel.getGridCellModel(posX, posY);
@@ -131,15 +145,73 @@ public class Hex2DController implements Initializable
 
                 if ((gridNodeProbability > 0.0D) && (maxProb > 0.0D) && (minProb != Double.POSITIVE_INFINITY)) {
                     final double radius = this.scaleProbability(gridNodeProbability, minProb, maxProb, minRadius, maxRadius);
-                    //final double radius = this.scaleProbabilityLog(gridNodeProbability, minProb, maxProb, minRadius, maxRadius);
                     gridNodeCircle.setRadius(radius);
                     gridNodeCircle.setFill(Color.YELLOW);
+
+                    // Eigentime-Linien zeichnen (eine Kette pro PartStep)
+                    final List<PartStep> partSteps = this.hexGridService.retrieveActPartSteps(posX, posY);
+                    this.drawEigentimeChains(gridCellModel, partSteps, radius);
                 } else {
                     gridNodeCircle.setRadius(minRadius);
                     gridNodeCircle.setFill(Color.DARKGRAY);
                 }
             }
         }
+    }
+
+    private void drawEigentimeChains(final GridCellModel gridCellModel, final List<PartStep> partStepList,
+                                     final double baseRadius) {
+        if (partStepList == null || partStepList.isEmpty()) return;
+
+        final double centerX = gridCellModel.getScreenPosX();
+        final double centerY = gridCellModel.getScreenPosY();
+        final double maxLen = this.StepX * 0.1D; // maximale Gesamtlänge einer Kette
+        //final int segmentsPerChain = 4; // feste Segmentanzahl je PartStep
+
+        double x0 = centerX;
+        double y0 = centerY;
+        double currentAngle0 = 0.0D;
+
+        for (final PartStep partStep : partStepList) {
+            if (partStep.getProbability() <= 64 * 4 * 4) continue; // zu kleine Wahrscheinlichkeit
+
+            //final double prob = Math.max(0.0D, (double) partStep.getProbability());
+            //final double lenFactor = prob / (double) HexGridService.PROBABILITY; // [0..1]
+            //final double totalChainLen = Math.max(baseRadius * 0.6D, maxLen * lenFactor); // minimale sichtbare Länge
+            //final double totalChainLen = maxLen; // minimale sichtbare Länge
+            //final double segmentLen = totalChainLen / segmentsPerChain;
+            final double segmentLen = maxLen;
+
+            final double angleRad = HexGridService.calcAngleRadFromEigentime(partStep.getEigentime());
+            // Rotationsinkrement: kleiner Zusatzwinkel für Kettenoptik
+            //final double deltaAngle = Math.toRadians(12.0D); // 12° je Segment
+
+            final double currentAngle1 = currentAngle0 + angleRad;
+
+            final double x1 = x0 + (Math.cos(currentAngle1) * segmentLen);
+            final double y1 = y0 + (Math.sin(currentAngle1) * segmentLen);
+
+            final Line line = new Line(x0, y0, x1, y1);
+            line.setStrokeWidth(1.0D);
+            line.setStroke(calcStrokeColor(partStep));
+            line.setOpacity(0.85D);
+
+            // Linien nach den Kreisen zeichnen -> oben liegend
+            this.mainPane.getChildren().add(line);
+            gridCellModel.getEigentimeLineList().add(line);
+
+            // Nächstes Segment startet am Ende und rotiert weiter
+            x0 = x1;
+            y0 = y1;
+            currentAngle0 = currentAngle1;
+        }
+    }
+
+    private Color calcStrokeColor(final PartStep partStep) {
+        final long impulse = partStep.getImpulse();
+        if (impulse > 0) return Color.LIMEGREEN;
+        if (impulse < 0) return Color.ORANGERED;
+        return Color.DEEPSKYBLUE;
     }
 
     // Neue Hilfsmethode: Skalierung in [minR, maxR]
